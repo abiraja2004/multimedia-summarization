@@ -9,10 +9,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def filter_tweets(tweet_url, tokenizer, max_hashtags=2, max_urls=3):
+def filter_tweets(tweet_url, tokenizer, max_hashtags=2, max_urls=2):
     """
     :param tweet_url: list of pairs (tweet_obj, url_obj)
     :param tokenizer:  nlp.tokenizer.Tokenizer
+    :param max_hashtags: max hashtags allowed
+    :param max_urls: max urls allowed
     :return: list of filtered pairs (tweet_obj, url_obj)
     """
     logger.info(f"Filtering out tweets with more than {max_hashtags} hashtags or {max_urls} urls")

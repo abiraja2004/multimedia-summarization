@@ -42,7 +42,7 @@ def join_tweets(tweet_urls: Dict):
         parent = uf.find(tweet_id)
         groups[parent].append(tweet_id)
 
-    return list(groups.values())
+    return list([group for group in groups.values() if len(group) > 1])
 
 
 def compute_groups_stats(groups: List[List[int]], tweet_urls: Dict):

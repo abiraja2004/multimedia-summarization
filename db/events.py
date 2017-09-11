@@ -52,3 +52,5 @@ def get_tweets_from_ids(tweet_ids, session):
 
     tweets = session.query(Tweet).filter(Tweet.tweet_id.in_(tweet_ids)).all()
     return tweets
+
+
