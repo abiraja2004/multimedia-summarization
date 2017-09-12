@@ -3,26 +3,31 @@ given event ids, get event info
 """
 
 from typing import List
-from db.models_cuboid import Tweet, TweetURL, URL
+from db.models_new import *
 from collections import defaultdict
+from typing import Iterable
+from tqdm import tqdm
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def get_tweets(event_name, event_ids: List[int], session, with_urls=True):
+def get_tweets(event_name: str, event_ids: List[int], session, with_urls=True):
     logger.info(f"Event name: {event_name}")
 
-    if with_urls:
-        logger.info(f"Loading with URLs...")
-        tweets = session.query(Tweet, URL)\
-            .outerjoin(TweetURL, Tweet.tweet_id == TweetURL.tweet_id)\
-            .outerjoin(URL, TweetURL.url_id == URL.id)\
-            .filter(Tweet.event_id_id.in_(event_ids))\
+    if not with_urls:
+        tweets = session.query(Tweet)\
+            .join(EventTweet, Tweet.tweet_id == EventTweet.tweet_id)\
+            .filter(EventTweet.event_id.in_(event_ids))\
             .all()
     else:
-        tweets = session.query(Tweet).filter(Tweet.event_id_id.in_(event_ids)).all()
+        tweets = session.query(Tweet, URL)\
+            .join(EventTweet, Tweet.tweet_id == EventTweet.tweet_id)\
+            .outerjoin(TweetURL, Tweet.tweet_id == TweetURL.tweet_id)\
+            .outerjoin(URL, TweetURL.url_id == URL.id)\
+            .filter(EventTweet.event_id.in_(event_ids))\
+            .all()
 
     logger.info(f"Loaded {len(tweets)} tweets")
     return tweets
@@ -52,5 +57,15 @@ def get_tweets_from_ids(tweet_ids, session):
 
     tweets = session.query(Tweet).filter(Tweet.tweet_id.in_(tweet_ids)).all()
     return tweets
+
+
+def set_filtered_tweets(tweets: Iterable[Tweet], session):
+    db_tweets = session.query(Tweet)\
+        .filter(Tweet.tweet_id.in_([t.tweet_id for t, _ in tweets]))\
+        .all()
+    for tweet in tqdm(db_tweets, desc="Setting is_filtered in DB"):
+        tweet.is_filtered = True
+    session.commit()
+
 
 

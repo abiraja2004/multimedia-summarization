@@ -20,7 +20,8 @@ from db import events
 from nlp.filter_tweets import filter_tweets
 from nlp.tokenizer import Tokenizer
 from document_generation.documents import join_tweets, get_representants
-from db.engines import engine_mquezada as engine
+
+from db.engines import engine_of215 as engine
 
 from sqlalchemy.orm import sessionmaker
 
@@ -31,8 +32,8 @@ logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s
 tokenizer = Tokenizer()
 
 # custom variables
-event_name = "libya"
-event_ids = datasets.libya_hotel
+event_name = "Hurricane Irma"
+event_ids = datasets.irma
 Session = sessionmaker(engine, autocommit=True)
 
 session = Session()
@@ -43,6 +44,8 @@ tweet_url_list = events.get_tweets(event_name, event_ids, session)
 
 # eliminar spam de T' => T''
 filtered_tweet_url_list = filter_tweets(tweet_url_list, tokenizer)
+filtered_tweets = [t for t, _ in filtered_tweet_url_list]
+events.set_filtered_tweets(filtered_tweets, session)
 
 tweet_urls = events.create_tweet_urls_dict(filtered_tweet_url_list)
 

@@ -6,10 +6,17 @@ filters tweets based on simple heuristics
 
 from tqdm import tqdm
 import logging
+from typing import Iterable, Tuple
+from db.models_new import *
+
+from nlp.tokenizer import Tokenizer
 logger = logging.getLogger(__name__)
 
 
-def filter_tweets(tweet_url, tokenizer, max_hashtags=2, max_urls=2):
+def filter_tweets(tweet_url: Iterable[Tuple[Tweet, URL]],
+                  tokenizer: Tokenizer,
+                  max_hashtags: int = 2,
+                  max_urls: int = 2) -> Iterable[Tuple[Tweet, URL]]:
     """
     :param tweet_url: list of pairs (tweet_obj, url_obj)
     :param tokenizer:  nlp.tokenizer.Tokenizer

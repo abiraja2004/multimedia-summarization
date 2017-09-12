@@ -69,6 +69,18 @@ class Tweet(Base):
 
     user_id = Column(BigInteger)
 
+    # is_filtered if the tweet is to be considered for summarization
+    is_filtered = Column(Boolean, default=False)
+
+    # was the tweet processed for resolving the url?
+    url_expanded = Column(Boolean, default=False)
+
+    def __repr__(self):
+        return f'<Tweet [id={self.tweet_id}, text="{self.text}"]>'
+
+    def __str__(self):
+        return self.__repr__()
+
 
 class User(Base):
     __tablename__ = USER
@@ -99,6 +111,12 @@ class User(Base):
     utc_offset = Column(String(255))
     time_zone = Column(String(255))
 
+    def __repr__(self):
+        return f'<User [id={self.user_id}, screen_name={self.screen_name}]>'
+
+    def __str__(self):
+        return self.__repr__()
+
 
 class Cluster(Base):
     __tablename__ = 'cluster'
@@ -128,7 +146,7 @@ class Document(Base):
     embedded_html = Column(Text)
 
     def __str__(self):
-        return f"<id={self.tweet_id}, text={self.url}, embebed_html={self.embedded_html}>"
+        return f"<Document [id={self.tweet_id}, text={self.url}>"
 
     def __repr__(self):
         return self.__str__()
@@ -149,7 +167,7 @@ class TweetURL(Base):
     url_id = Column(Integer)
 
     def __str__(self):
-        return f"<tweet_id={self.tweet_id}, url_id={self.url_id}>"
+        return f"<TweetURL [tweet_id={self.tweet_id}, url_id={self.url_id}]>"
 
     def __repr__(self):
         return self.__str__()
@@ -165,7 +183,7 @@ class URL(Base):
     expanded_clean = Column(String(1024))
 
     def __str__(self):
-        return f"<id={self.id}, short={self.short_url}, exp={self.expanded_url}, title={self.title}>"
+        return f"<URL [id={self.id}, exp={self.expanded_url}, title={self.title}]>"
 
     def __repr__(self):
         return self.__str__()
