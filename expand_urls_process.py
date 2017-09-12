@@ -17,7 +17,7 @@ batch_size = 10000
 n_threads = 64
 
 while True:
-    tweets = session.query(Tweet).filter(~Tweet.url_expanded).limit(batch_size)
+    tweets = session.query(Tweet).filter(~Tweet.url_expanded).limit(batch_size).all()
     logger.info(f"read {len(tweets)} tweets")
 
     info, short_tweet = expand_urls.expand_urls(nlp, tweets, n_threads=n_threads)
