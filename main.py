@@ -54,5 +54,4 @@ groups = join_tweets(tweet_urls)
 
 # obtener representantes de D => R
 representants = list(get_representants(groups, tweet_urls))
-
 tweets = events.get_tweets_from_ids(representants, session)

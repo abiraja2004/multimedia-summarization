@@ -19,7 +19,7 @@ n_threads = 64
 
 # esto no es lindo:
 tweets = []
-for tweet in session.query(Tweet).filter(~Tweet.url_expanded).yield_per(batch_size):
+for tweet in session.query(Tweet).filter(~Tweet.url_expanded).limit(batch_size):
     tweets.append(tweet)
 
     if len(tweets) < batch_size:
