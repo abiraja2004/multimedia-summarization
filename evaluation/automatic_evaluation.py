@@ -49,12 +49,12 @@ def calculate_fdist(text, steam=False):
     :param steam: bool, perform steaming in the text
     :return: Frequency distribution
     """
-    list_of_words = remove_and_stem(text, steam)
+    list_of_words = remove_and_steam(text, steam)
     fdist_all = FreqDist(list_of_words)
     return fdist_all
 
 
-def remove_and_stem(text, steam=False):
+def remove_and_steam(text, steam=False):
     """
     Remove stop words and steam text
     :param text: String to be processed
@@ -131,8 +131,8 @@ def compute_jensen_shannon(event, reference_name, summary_name):
 
 
 def dist_jaccard(str1, str2):
-    str1 = set(remove_and_stem(str1, True))
-    str2 = set(remove_and_stem(str2, True))
+    str1 = set(remove_and_steam(str1, True))
+    str2 = set(remove_and_steam(str2, True))
     return float(len(str1 & str2)) / len(str1 | str2)
 
 

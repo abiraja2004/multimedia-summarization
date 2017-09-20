@@ -15,17 +15,16 @@ workflow:
 - Presentar R'
 """
 
-from db import datasets
-from db import events
-from nlp.filter_tweets import filter_tweets
-from nlp.tokenizer import Tokenizer
-from document_generation.documents import join_tweets, get_representants
-
-from db.engines import engine_of215 as engine
+import logging
 
 from sqlalchemy.orm import sessionmaker
 
-import logging
+from db import datasets
+from db import events
+from db.engines import engine_of215 as engine
+from document_generation.documents import join_tweets, get_representants
+from nlp.filter_tweets import filter_tweets
+from nlp.tokenizer import Tokenizer
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
@@ -33,7 +32,7 @@ tokenizer = Tokenizer()
 
 # custom variables
 event_name = "Hurricane Irma"
-event_ids = datasets.irma
+event_ids = datasets.libya_hotel
 Session = sessionmaker(engine, autocommit=True)
 
 session = Session()
