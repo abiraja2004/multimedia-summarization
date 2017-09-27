@@ -40,7 +40,7 @@ session = Session()
 
 
 # seleccionar tweets T de e
-tweet_url_list = events.get_tweets(event_name, event_ids, session)
+tweet_url_list = events.get_tweet_ids(event_name, event_ids, session)
 
 # eliminar spam de T' => T''
 filtered_tweet_url_list = filter_tweets(tweet_url_list, tokenizer)

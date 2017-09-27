@@ -53,7 +53,7 @@ def resolve_url(url):
             if html:
                 title = html.title or ''
                 title = ' '.join(title.text.split())
-                title = title[:1024]
+                title = title
             return resp.url, title, clean_url(resp.url)
     except TooManyRedirects:
         logger.error(f"URL <{url}> - too many redirects")
@@ -87,14 +87,14 @@ def expand_urls(spacy_model: spacy.en.English, tweets: List[Tweet], n_threads: i
     tweet_texts = [tweet.text for tweet in tweets]
     tweet_ids = [tweet.tweet_id for tweet in tweets]
 
+    assert len(tweet_ids) == len(tweet_texts)
+
     logger.info(f"Extracting urls from {len(tweet_texts)} tweets")
     for tweet_id, doc in zip(tweet_ids, spacy_model.pipe(tweet_texts, n_threads=n_threads)):
-        short_urls = list(get_urls_from_doc(doc))
-
-        for u in short_urls:
-            shorturl_tweetid[u].append(tweet_id)
+        short_urls = get_urls_from_doc(doc)
 
         for url in short_urls:
+            shorturl_tweetid[url].append(tweet_id)
             urls.add(url)
 
     q = Queue()

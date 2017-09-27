@@ -13,24 +13,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_tweets(event_name: str, event_ids: List[int], session, with_urls=True):
+def get_tweet_ids(event_name: str, event_ids: List[int], session, with_urls=True):
     logger.info(f"Event name: {event_name}")
 
-    if not with_urls:
-        tweets = session.query(Tweet)\
-            .join(EventTweet, Tweet.tweet_id == EventTweet.tweet_id)\
-            .filter(EventTweet.event_id.in_(event_ids))\
-            .all()
-    else:
-        tweets = session.query(Tweet, URL)\
-            .join(EventTweet, Tweet.tweet_id == EventTweet.tweet_id)\
-            .outerjoin(TweetURL, Tweet.tweet_id == TweetURL.tweet_id)\
-            .outerjoin(URL, TweetURL.url_id == URL.id)\
-            .filter(EventTweet.event_id.in_(event_ids))\
-            .all()
+    tweet_ids = session.query(Tweet.tweet_id).distinct().yield_per(1000)\
+        .join(EventTweet, Tweet.tweet_id == EventTweet.tweet_id)\
+        .filter(EventTweet.event_id.in_(event_ids))\
+        .all()
 
-    logger.info(f"Loaded {len(tweets)} tweets")
-    return tweets
+    logger.info(f"Loaded {len(tweet_ids)} tweets")
+    return tweet_ids
 
 
 def create_tweet_urls_dict(tweet_urls):

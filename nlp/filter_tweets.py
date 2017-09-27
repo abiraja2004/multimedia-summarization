@@ -13,10 +13,10 @@ from nlp.tokenizer import Tokenizer
 logger = logging.getLogger(__name__)
 
 
-def filter_tweets(tweet_url: Iterable[Tuple[Tweet, URL]],
+def filter_tweets(tweet_url: Iterable[Tuple[Tweet, ExpandedURL]],
                   tokenizer: Tokenizer,
                   max_hashtags: int = 2,
-                  max_urls: int = 2) -> Iterable[Tuple[Tweet, URL]]:
+                  max_urls: int = 2) -> Iterable[Tuple[Tweet, ExpandedURL]]:
     """
     :param tweet_url: list of pairs (tweet_obj, url_obj)
     :param tokenizer:  nlp.tokenizer.Tokenizer

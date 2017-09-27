@@ -173,17 +173,30 @@ class TweetURL(Base):
         return self.__str__()
 
 
-class URL(Base):
-    __tablename__ = 'url'
+class ShortURL(Base):
+    __tablename__ = 'short_url'
 
     id = Column(Integer, primary_key=True)
     short_url = Column(String(255))
-    expanded_url = Column(String(1024))
-    title = Column(String(1024))
-    expanded_clean = Column(String(1024))
+    expanded_id = Column(Integer)
 
     def __str__(self):
-        return f"<URL [id={self.id}, exp={self.expanded_url}, title={self.title}]>"
+        return f"<ShortURL [id={self.id}, url={self.short_url}, exp={self.expanded_id}]>"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class ExpandedURL(Base):
+    __tablename__ = 'expanded_url'
+
+    id = Column(Integer, primary_key=True)
+    expanded_url = Column(String(2048))
+    title = Column(String(2048))
+    expanded_clean = Column(String(2048))
+
+    def __str__(self):
+        return f"<URL [id={self.id}, url={self.expanded_clean}]>"
 
     def __repr__(self):
         return self.__str__()
