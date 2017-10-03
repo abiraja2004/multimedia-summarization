@@ -1,3 +1,7 @@
+"""
+
+"""
+import json
 import subprocess
 from collections import defaultdict
 from pathlib import Path
@@ -42,6 +46,18 @@ def create_json_topic(n_clusters):
             file.write('\n')
 
 
+def save_summary(event):
+    path_summary = Path(settings.LOCAL_DATA_DIR_2, 'data', event, 'summaries', 'system',
+                        'phrase_reinforcement_summary.txt')
+    path_json = Path(settings.LOCAL_DATA_DIR_2, 'data', event, 'phrase_reinforcement', 'rawData.json')
+    with path_json.open('r') as json_file, path_summary.open('w') as summary_file:
+        phrase_json = json.load(json_file)
+        for k, v in phrase_json.items():
+            if 'autoSummary' in v.keys():
+                summary = v['autoSummary']
+                summary_file.write(summary + '\n')
+
+
 def phrase_reinforcement(n_cluster):
     if not Path(event_name + '.txt').exists():
         create_json_topic(n_cluster)
@@ -49,6 +65,7 @@ def phrase_reinforcement(n_cluster):
     path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'phrase_reinforcement').__str__() + '/'
     print(path_summaries)
     subprocess.call(['java', '-jar', 'TwitterSummaryData.jar', event_name + '.txt', path_summaries])
-
+    save_summary(event_name)
 
 phrase_reinforcement(10)
+

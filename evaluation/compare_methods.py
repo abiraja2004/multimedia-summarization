@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from Evaluation.automatic_evaluation import dist_jaccard, calculate_most_popular, dist_jaccard_list
 from db_utils import get_tweets_list
 
+from evaluation.automatic_evaluation import dist_jaccard, calculate_most_popular, dist_jaccard_list
 from settings import LOCAL_DATA_DIR_2
 
 

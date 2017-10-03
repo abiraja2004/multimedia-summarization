@@ -3,14 +3,25 @@ Transform tweets in db to items for MGraph and save them in mongoDB instance
 """
 from pymongo import MongoClient
 
-from db.events import get_tweets
-from db.models_new import URL, TweetURL
+from db.events import get_tweet_ids, get_tweets_from_ids
+from db.models_new import TweetURL, ShortURL
+from utils.download_tweets import chunks
 
 client = MongoClient()
 
 
+def insert_items(event_ids, event_name, session):
+    db = client['tweets_' + event_name]
+    collection = db['tweets_collection']
+    data = transform(event_ids, event_name, session)
+    chunks_tweets = chunks(data, 100)
+    for chunk in chunks_tweets:
+        collection.insert_many(chunk)
+
+
 def transform(event_ids, event_name, session):
-    tweets = get_tweets(event_name, event_ids, session)
+    tweets_ids = get_tweet_ids(event_name, event_ids, session)
+    tweets = get_tweets_from_ids(tweets_ids, tweets_ids)
     data = []
     for tweet in tweets:
         item = create_item(tweet, session)
@@ -26,7 +37,7 @@ def create_item(tweet, session):
         item['reference'] = tweet.retweeted_status_id
     entities = tweet.entities._json
 
-    urls = session.query(URL, TweetURL).outerjoin(TweetURL, URL.id == TweetURL.url_id).filter(
+    urls = session.query(ShortURL, TweetURL).outerjoin(TweetURL, ShortURL.id == TweetURL.url_id).filter(
         TweetURL.tweet_id == tweet.id).all()
     urls_list = []
     for url in urls:
@@ -44,17 +55,3 @@ def create_item(tweet, session):
     return item
     # item['entities'] = tweet.entities
 
-
-def chunks(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
-
-
-def insert_items(event_ids, event_name, session):
-    db = client['tweets_' + event_name]
-    collection = db['tweets_collection']
-    data = transform(event_ids, event_name, session)
-    chunks = chunks(data, 100)
-    for chunk in chunks:
-        collection.insert_many(chunk)

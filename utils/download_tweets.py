@@ -37,11 +37,11 @@ collection = db.tweets_collection
 tweets = get_tweets(event_name, events_id, session)
 tweets_ids = [tweet.tweet_id for tweet in tweets]
 
-chunks = chunks(tweets_ids, 100)
+chunks_tweets = chunks(tweets_ids, 100)
 count_request = 0
 count_inserted = 0
 print(len(tweets_ids))
-for chunk in chunks:
+for chunk in chunks_tweets:
     if count_request % 10 == 0:
         limits_status = api.rate_limit_status()
         limits = limits_status['resources']['users']['/users/lookup']
