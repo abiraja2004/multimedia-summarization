@@ -148,7 +148,7 @@ class Document(Base):
     expanded_url_id = Column(Integer)
 
     def __str__(self):
-        return f"<Document [id={self.tweet_id}, text={self.url}>"
+        return f"<Document [id={self.tweet_id}, text={self.text}>"
 
     def __repr__(self):
         return self.__str__()
