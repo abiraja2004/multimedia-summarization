@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, DateTime, BigInteger, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 TWEET = 'tweet_2017'
 EVENT = 'event_2017'
@@ -144,6 +145,7 @@ class Document(Base):
     total_replies = Column(Integer)
     total_tweets = Column(Integer)
     embedded_html = Column(Text)
+    expanded_url_id = Column(Integer)
 
     def __str__(self):
         return f"<Document [id={self.tweet_id}, text={self.url}>"
@@ -196,7 +198,29 @@ class ExpandedURL(Base):
     expanded_clean = Column(String(2048))
 
     def __str__(self):
-        return f"<URL [id={self.id}, url={self.expanded_clean}]>"
+        return f"<URL [id={self.id}, url={self.expanded_clean[:-1]}]>"
 
     def __repr__(self):
         return self.__str__()
+
+
+class EventGroup(Base):
+    __tablename__ = 'eventgroup'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(1024))
+    event_ids = Column(String(2048))
+
+    def __str__(self):
+        return f"<EventGroup [name={self.name}, ids={self.event_ids}]>"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class DocumentGroup(Base):
+    __tablename__ = 'document_eventgroup'
+
+    id = Column(Integer, primary_key=True)
+    document_id = Column(Integer)
+    eventgroup_id = Column(Integer)

@@ -1,5 +1,5 @@
 from document_generation.union_find import UnionFind
-from typing import List, Dict
+from typing import List, Dict, Any
 from tqdm import tqdm
 from collections import defaultdict
 import logging
@@ -96,3 +96,39 @@ def get_representants(groups: List[List[int]], tweet_urls: Dict, w=(.8, .2)):
             representant = representant or group[0]
 
         yield representant
+
+
+def get_representatives(url_tweets: Dict[int, List[int]], tweets: Dict[int, Any]):
+    """
+    Select representative tweets for each URL
+    :param url_tweets:
+    :param tweets:
+    :param weights:
+    :return:
+    """
+    logger.info("Getting representative tweets")
+
+    for url, tweet_ids in tqdm(url_tweets.items(), total=len(url_tweets)):
+        tweet_objs = [tweets[id_] for id_ in tweet_ids]
+        non_rts = list(filter(lambda t_: not t_.is_a_retweet, tweet_objs))
+
+        # privilege earliest original tweet
+        if non_rts:
+            rep = min(non_rts, key=lambda t_: t_.created_at)
+            yield rep
+
+        else:
+            # if there's only one tweet, yield it
+            if len(tweet_objs) == 1:
+                yield tweet_objs[0]
+
+            # else, select the tweet with most RTs and likes
+            else:
+                score = 0
+                tweet = tweet_objs[0]
+                for t in tweet_objs:
+                    if t.retweet_count + t.favorite_count > score:
+                        score = t.retweet_count + t.favorite_count
+                        tweet = t
+
+                yield tweet

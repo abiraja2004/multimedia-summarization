@@ -31,7 +31,7 @@ while True:
         expanded = session.query(ExpandedURL).filter(ExpandedURL.expanded_clean == clean).first()
 
         if not expanded:
-            expanded = ExpandedURL(expanded_url=long, title=title, expanded_clean=clean)
+            expanded = ExpandedURL(expanded_url=long, title=title[:max_size], expanded_clean=clean)
             session.add(expanded)
 
         url = ShortURL(short_url=short, expanded_id=expanded.id)
