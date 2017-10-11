@@ -5,10 +5,11 @@ from time import sleep
 
 import tweepy
 from pymongo import MongoClient
+from sqlalchemy.orm import sessionmaker
 
 from db import datasets
+from db.engines import engine_lmartine as engine
 from db.events import get_tweets
-from main import session
 
 consumer_key = "8EnRbS2eN4iRm3wkMNJsK9Eed"
 consumer_secret = "lqAwxv2ajssv54z3jAKVAhVeQGKJzeKbCB8qFkfd6XVEYgDm1b"
@@ -27,36 +28,41 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-event_name = "nepal_earthquake"
-events_id = datasets.nepal_earthquake
+if __name__ == '__main__':
 
-client = MongoClient()
-db = client.tweets_nepal
-collection = db.tweets_collection
+    Session = sessionmaker(engine, autocommit=True)
+    session = Session()
 
-tweets = get_tweets(event_name, events_id, session)
-tweets_ids = [tweet.tweet_id for tweet in tweets]
+    event_name = "nepal_earthquake"
+    events_id = datasets.nepal_earthquake
 
-chunks_tweets = chunks(tweets_ids, 100)
-count_request = 0
-count_inserted = 0
-print(len(tweets_ids))
-for chunk in chunks_tweets:
-    if count_request % 10 == 0:
-        limits_status = api.rate_limit_status()
-        limits = limits_status['resources']['users']['/users/lookup']
-        limits_app = limits_status['resources']['application']['/application/rate_limit_status']['remaining']
-        remaining = limits['remaining']
-        print('Peticiones restantes {}'.format(limits_app))
-    if remaining > 50 and limits_app > 90:
-        download_tweets = api.statuses_lookup(chunk, include_entities=True)
-        count_request = count_request + 1
-        tweets_json = [tweet._json for tweet in download_tweets]
-        collection.insert_many(tweets_json)
-        count_inserted = count_inserted + len(tweets_json)
-    else:
-        print("Pausa")
-        sleep(1020)
+    client = MongoClient()
+    db = client.tweets_nepal
+    collection = db.tweets_collection
 
-print(count_inserted)
-print(count_request)
+    tweets = get_tweets(event_name, events_id, session)
+    tweets_ids = [tweet.tweet_id for tweet in tweets]
+
+    chunks_tweets = chunks(tweets_ids, 100)
+    count_request = 0
+    count_inserted = 0
+    print(len(tweets_ids))
+    for chunk in chunks_tweets:
+        if count_request % 10 == 0:
+            limits_status = api.rate_limit_status()
+            limits = limits_status['resources']['users']['/users/lookup']
+            limits_app = limits_status['resources']['application']['/application/rate_limit_status']['remaining']
+            remaining = limits['remaining']
+            print('Peticiones restantes {}'.format(limits_app))
+        if remaining > 50 and limits_app > 90:
+            download_tweets = api.statuses_lookup(chunk, include_entities=True)
+            count_request = count_request + 1
+            tweets_json = [tweet._json for tweet in download_tweets]
+            collection.insert_many(tweets_json)
+            count_inserted = count_inserted + len(tweets_json)
+        else:
+            print("Pausa")
+            sleep(1020)
+
+    print(count_inserted)
+    print(count_request)
