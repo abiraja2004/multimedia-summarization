@@ -15,36 +15,10 @@ import theano.tensor as T
 import theano
 import numpy as np
 
-# load pre-trained vectors
-from gensim.models import KeyedVectors
-
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
 
-
-server, engine = connect_from_rafike(username='mquezada', password='100486')
-Session = sessionmaker(engine, autocommit=True)
-session = Session()
-
-documents = session.query(Document).all()
-
-nlp = spacy.load('en', parser=False, tagger=False, entity=False)
-
-path = '/home/mquezada/word_embeddings/model.vec'
-w2v = KeyedVectors.load_word2vec_format(path)
-
-
-def gen_vectors(docs):
-    vectors = []
-    for d in tqdm(docs):
-        text = d.text.split()
-        v = []
-        for token in text:
-            try:
-                v.append(w2v[token.lower()])
-            except KeyError:
-                continue
-        vectors.append(np.mean(v, axis=0)[None])
-    return vectors
+event_name = "hurricane_irma"
+doc_vectors = np.load(f'fasttext_vectors_event_{event_name}.npy')
 
 
 def cos_sim_():
@@ -53,7 +27,7 @@ def cos_sim_():
     z = T.mean(T.dot(docv / T.sqrt(T.sum(T.pow(docv, 2))),
                      clusters / T.sqrt(T.sum(T.pow(clusters, 2), axis=0))))
 
-    #z = T.mean(T.dot(docv, clusters))
+    # z = T.mean(T.dot(docv, clusters))
     return theano.function([docv, clusters], z)
 
 
@@ -68,12 +42,11 @@ def mean_():
 
 similarity = cos_sim_()
 mean = mean_()
-vectors = gen_vectors(documents)
 threshold = 0.9
 clusters = []
 clusters_idx = []
 
-for i, vector in tqdm(enumerate(vectors), total=len(vectors)):
+for i, vector in tqdm(enumerate(doc_vectors), total=len(doc_vectors)):
     if np.isnan(vector).any():
         continue
     j_max, sim_max, vector_max = -1, -1, None
@@ -91,18 +64,17 @@ for i, vector in tqdm(enumerate(vectors), total=len(vectors)):
         clusters.append(vector.T)
         clusters_idx.append([i])
 
-with open("irma_ids.txt", 'w') as f:
-    for idx, cluster in enumerate(sorted(clusters_idx, key=lambda x: len(x), reverse=True)):
-        if len(cluster) == 1:
-            continue
 
-        #print("cluster:", idx, "-", "size:", len(cluster))
-
-        cluster_docs = sorted([documents[i] for i in cluster], key=lambda x: x.total_rts + x.total_favs, reverse=True)
-        #docs = sorted(cluster_docs, key=itemgetter(2), reverse=True)[:5]
-        for d in cluster_docs[:1]:
-            f.write(str(d.tweet_id) + '\n')
-        #print()
-        #print()
-        #input()
-
+# with open("irma_ids.txt", 'w') as f:
+#     for idx, cluster in enumerate(sorted(clusters_idx, key=lambda x: len(x), reverse=True)):
+#         if len(cluster) == 1:
+#             continue
+#         # print("cluster:", idx, "-", "size:", len(cluster))
+#
+#         cluster_docs = sorted([documents[i] for i in cluster], key=lambda x: x.total_rts + x.total_favs, reverse=True)
+#         # docs = sorted(cluster_docs, key=itemgetter(2), reverse=True)[:5]
+#         for d in cluster_docs[:1]:
+#             f.write(str(d.tweet_id) + '\n')
+#         # print()
+#         # print()
+#         # input()

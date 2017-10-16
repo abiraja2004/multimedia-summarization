@@ -100,8 +100,6 @@ def get_urls(tweets: List[Tweet], session, chunk_size=1):
         for url in urls:
             all_urls[url.id] = url
 
-
-
     return all_urls
 
 
@@ -169,5 +167,13 @@ def save_documents(representatives: List[Tweet],
                                        tweet_id=tw_id)
 
                 session.add(doc_tw)
+
+
+def get_documents_from_event(name: str, session):
+    documents = session.query(Document)\
+        .join(DocumentGroup, DocumentGroup.document_id == Document.id)\
+        .join(EventGroup, EventGroup.id == DocumentGroup.eventgroup_id)\
+        .filter(EventGroup.name == name).all()
+    return documents
 
 
