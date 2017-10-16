@@ -2,6 +2,7 @@
 
 """
 import json
+import re
 import subprocess
 from collections import defaultdict
 from pathlib import Path
@@ -15,16 +16,21 @@ from db import datasets, events
 from db.engines import engine_lmartine as engine
 from evaluation.automatic_evaluation import remove_and_steam
 
-event_name = 'libya_hotel'
-event_ids = datasets.libya_hotel
+event_name = 'irma'
+event_ids = datasets.irma
 
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
 
+def clean_tweet(tweet):
+    return ' '.join(remove_and_steam(re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))), True))
+
+
 def clustering(n_clusters):
-    tweets = events.get_tweets(event_name, event_ids)
-    clean_tweets = [remove_and_steam(tweet.text, True) for tweet in tweets]
+    tweets_ids = events.get_tweet_ids(event_name, event_ids, session)
+    tweets = events.get_tweets_from_ids([id[0] for id in tweets_ids], session)
+    clean_tweets = [clean_tweet(tweet) for tweet in tweets]
     vectorizer = TfidfVectorizer()
     tfidf = vectorizer.fit_transform(clean_tweets)
     km = KMeans(n_clusters=n_clusters)
@@ -36,9 +42,10 @@ def clustering(n_clusters):
 def create_json_topic(n_clusters):
     tweets_labels = clustering(n_clusters)
     tweet_dict = defaultdict(list)
-    data = []
+
     for label, text in tweets_labels:
         tweet_dict[str(label)].append(text)
+
     for k, v in tweet_dict.items():
         aux_dict = {'topic': k, 'tweets': v}
         with open(event_name + '.txt', 'a') as file:
@@ -67,5 +74,5 @@ def phrase_reinforcement(n_cluster):
     subprocess.call(['java', '-jar', 'TwitterSummaryData.jar', event_name + '.txt', path_summaries])
     save_summary(event_name)
 
-phrase_reinforcement(10)
 
+phrase_reinforcement(15)
