@@ -52,6 +52,8 @@ def cos_sim_():
     clusters = T.dmatrix('clusters')
     z = T.mean(T.dot(docv / T.sqrt(T.sum(T.pow(docv, 2))),
                      clusters / T.sqrt(T.sum(T.pow(clusters, 2), axis=0))))
+
+    #z = T.mean(T.dot(docv, clusters))
     return theano.function([docv, clusters], z)
 
 
@@ -88,3 +90,19 @@ for i, vector in tqdm(enumerate(vectors), total=len(vectors)):
     else:
         clusters.append(vector.T)
         clusters_idx.append([i])
+
+with open("irma_ids.txt", 'w') as f:
+    for idx, cluster in enumerate(sorted(clusters_idx, key=lambda x: len(x), reverse=True)):
+        if len(cluster) == 1:
+            continue
+
+        #print("cluster:", idx, "-", "size:", len(cluster))
+
+        cluster_docs = sorted([documents[i] for i in cluster], key=lambda x: x.total_rts + x.total_favs, reverse=True)
+        #docs = sorted(cluster_docs, key=itemgetter(2), reverse=True)[:5]
+        for d in cluster_docs[:1]:
+            f.write(str(d.tweet_id) + '\n')
+        #print()
+        #print()
+        #input()
+
