@@ -133,6 +133,12 @@ class DocumentCluster(Base):
     cluster_id = Column(Integer)
     label = Column(Integer)
 
+    def __repr__(self):
+        return f'<DocumentCluster [cluster_id={self.cluster_id}, label={self.label}]>'
+
+    def __str__(self):
+        return self.__repr__()
+
 
 class Document(Base):
     __tablename__ = 'document'

@@ -29,7 +29,7 @@ def main(event_name):
     nlp = spacy.load('en', parser=False, tagger=False, entity=False)
 
     event_name = 'hurricane_irma'
-    documents = get_documents_from_event(name, session)
+    documents = get_documents_from_event(event_name, session)
 
     nlp = spacy.load('en', parser=False, tagger=False, entity=False)
 

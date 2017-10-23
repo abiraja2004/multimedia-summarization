@@ -1,4 +1,8 @@
 """
+
+crea consultas y preprocesa los datos
+genera documentos en la BD para consultarlos mas rapido
+
 workflow:
 
 - seleccionar un evento e de la DB

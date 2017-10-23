@@ -4,7 +4,6 @@ from collections import defaultdict
 
 import numpy as np
 
-import main
 from db.clusters import get_documents_cluster
 from db.models_new import Tweet, DocumentTweet
 
@@ -21,18 +20,18 @@ def linear_combination(histogram):
 
 
 # Calculate the histogram of time frecuency
-def calculate_time_histogram(clustering, topic, n_clusters, session):
-    docs = get_documents_cluster(clustering, n_clusters, session)
+def calculate_time_histogram(clustering, topic, session):
+    docs = get_documents_cluster(clustering, session)
     topic_dict = defaultdict(list)
 
     for doc in docs:
         topic_dict[doc[0]].append(doc[1])
     specific_topic = topic_dict[topic]
     docs_id = [doc.id for doc in specific_topic]
-    tweets = main.session.query(DocumentTweet.tweet_id).filter(DocumentTweet.document_id.in_(docs_id)).all()
+    tweets = session.query(DocumentTweet.tweet_id).filter(DocumentTweet.document_id.in_(docs_id)).all()
 
     tweets = [x[0] for x in tweets]
-    dates = main.session.query(Tweet.created_at).filter(Tweet.tweet_id.in_(tweets)).all()
+    dates = session.query(Tweet.created_at).filter(Tweet.tweet_id.in_(tweets)).all()
 
     differences = []
     dates.sort(key=lambda x: x[0], reverse=True)
@@ -56,3 +55,23 @@ def rank(histograms, score=True):
     if score:
         ranking = [x[0] for x in ranking]
     return ranking
+
+
+from db.models_new import Cluster, DocumentCluster, Document, Tweet, DocumentTweet
+import json
+
+def gen_histograms(clustering_id, session):
+    # TODO implementar con la BD completa
+    clustering = session.query(Cluster).filter(Cluster.id == clustering_id).first()
+
+    doc_info = session.query(Document, DocumentCluster, Tweet) \
+        .join(DocumentCluster, DocumentCluster.document_id == Document.id) \
+        .join(Tweet, Tweet.tweet_id == Document.tweet_id) \
+        .filter(DocumentCluster.cluster_id == clustering_id).all()
+
+    params = json.loads(clustering.params)
+    n_clusters = params['n_clusters']
+
+    # TODO considerar todos los tweets de un documento para el calculo de histograma
+    for i in range(n_clusters):
+        documents = [doc for doc, label_info, tweet in doc_info if label_info.label == i]
