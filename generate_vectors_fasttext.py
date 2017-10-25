@@ -63,7 +63,7 @@ def main(event_name):
 
         doc_vectors[i] = vector
 
-    np.save(f'fasttext_vectors_event_{event_name}.npy', arr=doc_vectors)
+    np.save(f'data/fasttext_vectors_event_{event_name}.npy', arr=doc_vectors)
     # doc_vectors = np.load(f'fasttext_vectors_event_{event_name}.npy')
 
 
