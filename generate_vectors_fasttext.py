@@ -36,7 +36,7 @@ def main(event_name):
     path = '/home/mquezada/word_embeddings/model.vec'
     w2v = KeyedVectors.load_word2vec_format(path)
 
-    doc_stream = nlp.pipe([doc.text for doc in documents], n_threads=16)
+    doc_stream = nlp.pipe([doc.text for doc, _ in documents], n_threads=16)
     doc_vectors = np.empty((len(documents), w2v.vector_size))
 
     for i, doc in tqdm(enumerate(doc_stream), total=len(documents)):
