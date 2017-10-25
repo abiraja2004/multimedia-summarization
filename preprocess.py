@@ -37,30 +37,26 @@ Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
 # custom variables
-event_name = 'hurricane_irma'
-filtering = True  # select tweets already filtered?
-save_documents = True  # save documents (url_tweets) to database?
+event_name = 'hurricane_irma2'
+filtering = False  # select tweets already filtered?
+# filtered tweet == tweet with few hashtags / urls
 
-event = session.query(EventGroup).filter(EventGroup.name == 'hurricane_irma').first()
+save_documents = not filtering  # save documents (url_tweets) to database?
+event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
 event_ids = list(map(int, event.event_ids.split(',')))
 
 # LOAD DATA
+# loads tweet objs, url objects and mappings between tweets and urls
 tweets, urls, tweet_url, url_tweets = events.get_tweets_and_urls(event_name, event_ids, session, filtering=filtering)
 
 if not filtering:
     # filter out tweets with several urls or hashtags: T => T'
     tweets2 = filter_tweets(tweets, tokenizer)
-    # set tweets to is_filtered = 1
+    # set tweets to is_filtered = 1 in DB
     events.set_filtered_tweets(tweets, session)
 
+# select representative tweets for each URL
 representatives = list(get_representatives(url_tweets, tweets))
 
 if save_documents:
     events.save_documents(representatives, url_tweets, tweets, event, session)
-
-# generar documentos D desde (U, T)
-# groups = join_tweets(tweet_urls)
-
-# obtener representantes de D => R
-# representants = list(get_representants(groups, tweet_urls))
-# tweets = events.get_tweets_from_ids(representants, session)

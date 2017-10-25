@@ -13,6 +13,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+"""
+search by keyword in DB
+
+set @k = "irma";
+select *
+from event_2017 
+where 
+ keyword1 like concat("%", @k, "%") collate utf8mb4_unicode_520_ci 
+ or keyword2 like concat("%", @k, "%") collate utf8mb4_unicode_520_ci
+ or keyword3 like concat("%", @k, "%") collate utf8mb4_unicode_520_ci;
+"""
+
+
 def get_tweets(event_name: str, event_ids: List[int], session, filtering=False):
     logger.info(f"Event name: {event_name}")
 
@@ -170,9 +183,10 @@ def save_documents(representatives: List[Tweet],
 
 
 def get_documents_from_event(name: str, session):
-    documents = session.query(Document)\
+    documents = session.query(Document, Tweet)\
         .join(DocumentGroup, DocumentGroup.document_id == Document.id)\
         .join(EventGroup, EventGroup.id == DocumentGroup.eventgroup_id)\
+        .join(Tweet, Document.tweet_id == Tweet.tweet_id)\
         .filter(EventGroup.name == name).all()
     return documents
 
