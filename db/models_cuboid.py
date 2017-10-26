@@ -44,6 +44,13 @@ class Tweet(Base):
         return self.__str__()
 
 
+class ComponentEvent(Base):
+    __tablename__ = "componentevent"
+
+    component_id = Column(Integer)
+    event_id = Column(Integer)
+
+
 class Cluster(Base):
     __tablename__ = 'cluster'
     id = Column(Integer, primary_key=True)
