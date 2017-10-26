@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from db.engines import connect_to_server
 import spacy
+from tqdm import trange
 import re
 from operator import itemgetter
 from collections import Counter
@@ -29,7 +30,7 @@ with m3() as engine, open('all_tweets_1_line_1_component.txt', 'w') as f:
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
 
-    for component_id in range(1, 25481 + 1):
+    for component_id in trange(1, 25481 + 1):
         event_ids = session.query(ComponentEvent.event_id).filter(ComponentEvent.component_id == component_id).all()
         event_ids = list(map(itemgetter(0), event_ids))
         all_texts = session.query(Tweet.text).yield_per(100000).filter(Tweet.event_id_id.in_(event_ids))
