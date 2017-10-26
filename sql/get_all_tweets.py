@@ -15,6 +15,7 @@ logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s
 
 # m3
 server, engine = connect_to_server(username='mquezada',
+                                   host="m3.dcc.uchile.cl",
                                    db_user="mquezada",
                                    db_name="mquezada_db",
                                    db_password="phoophoh7ahdaiJahphoh3aicooz7uka3ahJe9oi")
