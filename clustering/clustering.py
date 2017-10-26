@@ -7,8 +7,10 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
+from operator import itemgetter
 
 from db.engines import engine_of215 as engine
+from db import events
 from db.models_new import Document, Cluster, DocumentCluster
 
 event_name = sys.argv[1]
@@ -22,7 +24,9 @@ Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
 # documents = events.get_documents_from_event(event_name, session)
-documents = session.query(Document).all()
+documents = events.get_documents_from_event(event_name, session)
+documents = list(map(itemgetter(0), documents))
+
 doc_vectors = np.load(f'data/fasttext_vectors_event_{event_name}.npy')
 
 # all indices
@@ -40,22 +44,22 @@ n_clusterss = (5, 10, 20, 30)
 methods = list()
 
 # agglomerative
-for affinity, linkage, n_clusters in itertools.product(affinities, linkages, n_clusterss):
-    agg = AgglomerativeClustering(n_clusters=n_clusters,
-                                  affinity=affinity,
-                                  linkage=linkage)
-    params = agg.get_params()
-    params.pop('memory')
-    params.pop('pooling_func')
-    info = {'name': 'Agglomerative Clustering', 'params': params}
-
-    methods.append((agg, info))
+# for affinity, linkage, n_clusters in itertools.product(affinities, linkages, n_clusterss):
+#     agg = AgglomerativeClustering(n_clusters=n_clusters,
+#                                   affinity=affinity,
+#                                   linkage=linkage)
+#     params = agg.get_params()
+#     params.pop('memory')
+#     params.pop('pooling_func')
+#     info = {'name': 'Agglomerative Clustering', 'params': params, 'event': event_name}
+#
+#     methods.append((agg, info))
 
 # k-means
 for n_clusters in n_clusterss:
     km = KMeans(n_clusters=n_clusters, n_jobs=-1, max_iter=1000, n_init=100)
     params = km.get_params()
-    info = {'name': 'K-Means', 'params': params}
+    info = {'name': 'K-Means', 'params': params, 'event': event_name}
 
     methods.append((km, info))
 
