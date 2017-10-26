@@ -47,6 +47,7 @@ class Tweet(Base):
 class ComponentEvent(Base):
     __tablename__ = "componentevent"
 
+    id = Column(Integer, primary_key=True)
     component_id = Column(Integer)
     event_id = Column(Integer)
 
