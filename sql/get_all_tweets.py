@@ -25,7 +25,7 @@ with m3() as engine:
     session = Session()
 
     for component_id in range(1, 25481 + 1):
-        events = session.query(ComponentEvent).filter(ComponentEvent.component_id == component_id).all()
+        event_ids = session.query(ComponentEvent.event_id).filter(ComponentEvent.component_id == component_id).all()
 
     #all_tweets = session.query(Tweet).yield_per(100000).filter(Tweet.event_id_id ==)
 
