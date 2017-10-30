@@ -7,6 +7,7 @@ from db.models_new import *
 from collections import defaultdict
 from typing import Dict
 from tqdm import tqdm
+import numpy as np
 
 import logging
 
@@ -187,7 +188,18 @@ def get_documents_from_event(name: str, session):
         .join(DocumentGroup, DocumentGroup.document_id == Document.id)\
         .join(EventGroup, EventGroup.id == DocumentGroup.eventgroup_id)\
         .join(Tweet, Document.tweet_id == Tweet.tweet_id)\
-        .filter(EventGroup.name == name).all()
-    return documents
+        .filter(EventGroup.name == name)\
+        .all()
+
+    doc_id = dict()
+    for doc, tweet in documents:
+        doc_id[doc.tweet_id] = (doc, tweet)
+
+    return np.array(list(doc_id.values()))
+
+
+def get_eventgroup_id(event_name: str, session):
+    eventgroup = session.query(EventGroup).filter(EventGroup.name == event_name).first()
+    return eventgroup.id
 
 

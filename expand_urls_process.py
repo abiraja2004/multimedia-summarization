@@ -28,7 +28,7 @@ while True:
     urls_to_save = []
 
     for short, (long, title, clean) in tqdm(info_items):
-        expanded = session.query(ExpandedURL).filter(ExpandedURL.expanded_clean == clean).first()
+        expanded = session.query(ExpandedURL).filter(ExpandedURL.expanded_clean.like(clean.strip() + "%")).first()
 
         if not expanded:
             expanded = ExpandedURL(expanded_url=long, title=title[:max_size], expanded_clean=clean)

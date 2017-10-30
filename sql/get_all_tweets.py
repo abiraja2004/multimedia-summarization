@@ -24,6 +24,7 @@ m3 = lambda: connect_to_server(username='mquezada',
                                db_name="mquezada_db",
                                db_password="phoophoh7ahdaiJahphoh3aicooz7uka3ahJe9oi")
 
+
 wc = Counter()
 
 with m3() as engine, open('all_tweets_1_line_1_component.txt', 'w') as f:

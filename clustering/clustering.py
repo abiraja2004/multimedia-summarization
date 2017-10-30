@@ -1,4 +1,3 @@
-import itertools
 import json
 import logging
 import sys
@@ -7,25 +6,23 @@ import numpy as np
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
-from operator import itemgetter
 
 from db.engines import engine_of215 as engine
 from db import events
 from db.models_new import Document, Cluster, DocumentCluster
 
-event_name = sys.argv[1]
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
-# tokenizer = Tokenizer()
 
-# server, engine = connect_from_rafike(username='mquezada', password='100486')
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
+event_name = sys.argv[1]
+event_id = events.get_eventgroup_id(event_name, session)
+
 # documents = events.get_documents_from_event(event_name, session)
 documents = events.get_documents_from_event(event_name, session)
-documents = list(map(itemgetter(0), documents))
+documents = documents[:, 0]
 
 doc_vectors = np.load(f'data/fasttext_vectors_event_{event_name}.npy')
 
@@ -59,14 +56,14 @@ methods = list()
 for n_clusters in n_clusterss:
     km = KMeans(n_clusters=n_clusters, n_jobs=-1, max_iter=1000, n_init=100)
     params = km.get_params()
-    info = {'name': 'K-Means', 'params': params, 'event': event_name}
+    info = {'name': 'K-Means', 'params': params}
 
     methods.append((km, info))
 
 for method, method_info in tqdm(methods):
     # logger.info(f"Method: {method_info['name']}")
     with session.begin():
-        cluster = Cluster(json=json.dumps(method_info))
+        cluster = Cluster(json=json.dumps(method_info), eventgroup_id=event_id)
         session.add(cluster)
 
     method.fit(input_vectors)

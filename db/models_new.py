@@ -122,6 +122,7 @@ class User(Base):
 class Cluster(Base):
     __tablename__ = 'cluster'
     id = Column(Integer, primary_key=True)
+    eventgroup_id = Column(Integer)
     json = Column(Text)
 
 

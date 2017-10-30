@@ -1,5 +1,5 @@
-from db.engines import connect_to_server
 from db.models_new import *
+from db.engines import engine_of215 as engine
 from sqlalchemy.orm import sessionmaker
 import logging
 from db.events import get_documents_from_event
@@ -21,25 +21,22 @@ from gensim.models import KeyedVectors
 
 import sys
 
-event_name = sys.argv[1]
+# event_name = sys.argv[1]
+event_name = "hurricane_irma2"
 
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
-
-server, engine = connect_to_server(username='mquezada', db_name='twitter_news', db_user='root')
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
 nlp = spacy.load('en', parser=False, tagger=False, entity=False)
 
-# event_name = 'hurricane_irma'
+event_name = 'hurricane_irma'
 documents = get_documents_from_event(event_name, session)
 
-nlp = spacy.load('en', parser=False, tagger=False, entity=False)
-
-path = '/home/mquezada/word_embeddings/model.vec'
+path = '/home/mquezada/phd/multimedia-summarization/data/ft_alltweets_model.vec'
 w2v = KeyedVectors.load_word2vec_format(path)
 
-doc_stream = nlp.pipe([doc.text for doc, _ in documents], n_threads=16)
+doc_stream = nlp.pipe([doc.text for doc in documents[:, 0]], n_threads=16)
 doc_vectors = np.empty((len(documents), w2v.vector_size))
 
 for i, doc in tqdm(enumerate(doc_stream), total=len(documents)):
