@@ -25,10 +25,10 @@ from sqlalchemy.orm import sessionmaker
 
 from db import events
 from db.engines import engine_of215 as engine
-from nlp.filter_tweets import filter_tweets
-from nlp.tokenizer import Tokenizer
 from db.models_new import EventGroup
 from document_generation.documents import get_representatives
+from nlp.filter_tweets import filter_tweets
+from nlp.tokenizer import Tokenizer
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
@@ -37,7 +37,7 @@ Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
 # custom variables
-event_name = 'hurricane_irma2'
+event_name = 'libya_hotel'
 filtering = False  # select tweets already filtered?
 # filtered tweet == tweet with few hashtags / urls
 
