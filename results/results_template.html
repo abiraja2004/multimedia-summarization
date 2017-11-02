@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+      .container {
+          max-width: 500px;
+          padding-top: 50px;
+          margin: 0 auto;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>{{ params["name"] }}/{{ params["rep"] }} (n_clusters: {{ params["params"]["n_clusters"] }})</h1>
+
+    <pre id="json"></pre>
+
+    {% for cluster in clusters %}
+        <h2>Cluster {{ loop.index }}</h2>
+        {% for id in cluster %}
+        <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/{{ id }}"></a>
+        </blockquote>
+        {% endfor %}
+        <hr>
+        <br><br>
+    {% endfor %}
+
+</div>
+<script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script>
+    var data = {{ json }}
+    document.getElementById("json").innerHTML = JSON.stringify(data, undefined, 2);
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+      .container {
+          max-width: 500px;
+          padding-top: 50px;
+          margin: 0 auto;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>K-Means/fasttext (n_clusters: 5)</h1>
+
+    <pre id="json"></pre>
+
+            <h2>Cluster 1</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906144438916931584"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906680760563879936"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905888572057821185"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905613323902869505"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905512462971232257"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 2</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905783770275610624"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906458491480625152"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906579283950403585"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906965252792832000"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906895808708190210"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 3</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905382475848933376"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905845846687789058"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906991730611953666"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906365550258946048"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906543198599876608"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 4</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906872264313888768"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905891669475811328"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906193390412365825"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905602279767724032"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905041935139786752"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 5</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/905770545899286528"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906398760166678529"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906488380392923136"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906922297306472448"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/906820677663121410"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+    
+</div>
+<script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script>
+    var data = {"name": "K-Means", "rep": "fasttext", "params": {"algorithm": "auto", "copy_x": true, "init": "k-means++", "max_iter": 1000, "n_clusters": 5, "n_init": 100, "n_jobs": -1, "precompute_distances": "auto", "random_state": null, "tol": 0.0001, "verbose": 0}}
+    document.getElementById("json").innerHTML = JSON.stringify(data, undefined, 2);
+</script>
+</body>
+</html>
