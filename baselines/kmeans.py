@@ -28,7 +28,6 @@ def clustering(n_clusters, event_name, event_ids, session):
     for close_index in closest:
         tokens_closest.append(vectorizer.inverse_transform(tfidf[close_index]))
         tweet_closest.append(tweets[close_index])
-    print(tweet_closest)
     return tweet_closest
 
 

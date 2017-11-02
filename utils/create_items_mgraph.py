@@ -10,7 +10,7 @@ from tqdm import tqdm
 from db import datasets
 from db.engines import engine_lmartine as engine
 from db.events import get_tweets
-from db.models_new import TweetURL, ShortURL, User
+from db.models_new import User, Tweet
 from utils.download_tweets import chunks
 
 client = MongoClient()
@@ -29,43 +29,24 @@ def transform(event_ids, event_name, session):
     tweets = get_tweets(event_name, event_ids, session)
     print(len(tweets))
     data = []
-    for tweet in tweets:
-        item = create_item(tweet, session)
+    for tweet in tqdm(tweets):
+        item = create_item_mgraph(tweet, session)
         data.append(item)
     return data
 
 
-def create_item(tweet, session):
-    item = {'_id': str(tweet.tweet_id), 'text': tweet.text, 'publicationTime': tweet.created_at,
-            'reposts': tweet.retweet_count, 'original': tweet.is_a_retweet,
-            'inReplyId': str(tweet.in_reply_to_status_id)}
-    if tweet.is_a_retweet:
-        item['reference'] = tweet.retweeted_status_id
-        item['original'] = False
-    else:
-        item['original'] = True
-    entities = json.loads(tweet.entities)
-    user = session.query(User).filter(User.user_id == tweet.user_id).all()
-    item['username'] = user.screen_name
-    urls = session.query(ShortURL, TweetURL).outerjoin(TweetURL, ShortURL.id == TweetURL.url_id).filter(
-        TweetURL.tweet_id == tweet.id).all()
-    urls_list = []
-    for url in urls:
-        urls_list.append(url.short_url)
-    item['urls'] = urls_list
-
-    if 'media' in entities.keys():
-        medias = entities['media']
-        media_dict = {}
-        for media in medias:
-            media_dict[str(media['id'])] = media['media_url']
-        item['media'] = media_dict
-
-    text = tweet.text
-    hashtags = [token for token in text.split(' ') if token.startswith('#')]
-    item['hashtags'] = hashtags
+def create_item_mgraph(tweet, session):
+    item = {'id': str(tweet.tweet_id), 'text': tweet.text, 'created_at': str(tweet.created_at),
+            'entities': json.loads(tweet.entities),
+            'in_reply_to_status_id_str': str(tweet.in_reply_to_status_id), 'lang': 'en'}
+    user = session.query(User).filter(User.user_id == tweet.user_id).first()
+    user_dict = user.__dict__
+    user_dict.pop('_sa_instance_state')
+    item['user'] = user_dict
+    if tweet.retweeted_status_id:
+        rttweet = session.query(Tweet).filter(Tweet.id == tweet.retweeted_status_id).first()
+        item['retweeted_status'] = rttweet.__dict__
     return item
-    # item['entities'] = tweet.entities
 
 
 if __name__ == '__main__':
