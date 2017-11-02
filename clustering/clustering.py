@@ -12,7 +12,7 @@ from db.engines import engine_of215 as engine
 from db import events
 from db.models_new import Document, Cluster, DocumentCluster
 
-from document_representation.get_vectors import get_fasttext_vectors, get_tfidf_vectors
+from document_representation.get_vectors import *
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
@@ -20,7 +20,7 @@ logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
-#### user vars
+# user vars
 event_name = sys.argv[1]
 algo = sys.argv[2]
 rep = sys.argv[3]
@@ -35,6 +35,13 @@ elif rep == "tfidf":
     rep_params = tfidf.get_params()
     # TODO pop
     # rep_params[""]
+elif rep == 'discourse':
+    fname = sys.argv[4]
+    idx_name = sys.argv[5]
+    input_vectors, documents = get_discourse_vectors(event_name, fname, idx_name, session)
+
+    a = float('.'.join(fname.split('_')[-1].split('.')[0:2]))
+    rep_params = {"a": a}
 else:
     sys.exit(1)
 

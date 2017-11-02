@@ -42,3 +42,18 @@ def get_tfidf_vectors(event_name, session):
     return X, tfidf, documents
 
 
+def get_discourse_vectors(event_name, fname, idx_name, session, dtype='float32'):
+    logging.info("loading documents from DB")
+    documents = events.get_documents_from_event(event_name, session)
+    documents = documents[:, 0]
+
+    logging.info(f"loading data from {fname}")
+    doc_vectors = np.load(fname)
+    indices = np.load(idx_name)
+
+    documents = np.array([documents[i] for i in indices])
+    doc_vectors = doc_vectors.astype(dtype)
+
+    logging.info("done loading documents")
+    return doc_vectors, documents
+
