@@ -17,6 +17,7 @@ engine = create_engine('mysql://root:oracle_753@localhost/ams')
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
+
 Session_new = sessionmaker(engine_new, autocommit=True)
 session_new = Session_new()
 
@@ -44,25 +45,27 @@ def load_urls():
             expanded_url = ExpandedURL(expanded_url=url.expanded_url, title=url.title,
                                        expanded_clean=url.expanded_clean)
             session_new.add(expanded_url)
+            session_new.flush()
             short_url = ShortURL(short_url=url.short_url, expanded_id=expanded_url.id)
             session_new.add(short_url)
+            session_new.flush()
             tweet_url_new = TweetURL_new(tweet_id=tweet_url.tweet_id, url_id=short_url.id)
             session_new.add(tweet_url_new)
+            # session_new.flush()
 
 
 def load_events():
     events = session.query(Event).all()
     tweets = session.query(Tweet).all()
     inserted_events = defaultdict(set)
-    set_ids = set()
     with session_new.begin():
         for event in tqdm(events):
-            if event.event_id not in set_ids:
-                event_new = Event_new(keyword1=event.title)
-                session_new.add(event_new)
-                inserted_events[event.event_id].add(event_new)
-                set_ids.add(event_new.id)
+            event_new = Event_new(keyword1=event.title)
+            session_new.add(event_new)
+            inserted_events[event.event_id].add(event_new)
+            # session.commit()
 
+    with session_new.begin():
         for tweet in tqdm(tweets):
             event_tweet = EventTweet(tweet_id=tweet.tweet_id, event_id=list(inserted_events[tweet.event_id_id])[0].id)
             session_new.add(event_tweet)
@@ -77,16 +80,15 @@ def load_events():
 
 
 def load_eventgroup():
-    event_added = ['libya_hotel', 'oscar_pistorius', 'nepal_earthquake']
-    for keyword in event_added:
+    event_added = ['oscar_pistorius', 'libya_hotel', 'nepal_earthquake', 'mumbai_rape']
+    for keyword in tqdm(event_added):
         events = session_new.query(Event_new).filter(Event_new.keyword1 == keyword).all()
         ids = [event.id for event in events]
-        event_group = EventGroup(name=keyword, event_ids=ids.__str__())
+        event_group = EventGroup(name=keyword, event_ids=ids.__str__().replace('[', '').replace(']', ''))
         session_new.add(event_group)
 
 
-if __name__ == '__main__':
-    # load_tweets()
-    # load_urls()
-    # load_events()
-    load_eventgroup()
+# load_tweets()
+# load_urls()
+# load_events()
+load_eventgroup()

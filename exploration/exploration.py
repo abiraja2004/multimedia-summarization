@@ -26,11 +26,12 @@ def exploration(event_name, ids, session):
             originals = + 1
     print(retweets)
     print(originals)
+    print(avg_url)
 
 
 if __name__ == '__main__':
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
     event_name = 'irma'
-    ids = datasets.irma
-    exploration(event_name, ids, session)
+    event_ids = datasets.irma
+    exploration(event_name, event_ids, session)
