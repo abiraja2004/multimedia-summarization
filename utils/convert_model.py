@@ -1,7 +1,8 @@
 """Convert the info in the old database in the new schema"""
 from collections import defaultdict
+from datetime import date
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, cast, Date
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
@@ -88,7 +89,39 @@ def load_eventgroup():
         session_new.add(event_group)
 
 
+def delete_old_tweets(date):
+    with session_new.begin():
+        names = ['oscar_pistorius', 'libya_hotel', 'nepal_earthquake', 'mumbai_rape']
+        tweets = session_new.query(Tweet_new).filter(cast(Tweet_new.when_added, Date) == date).all()
+        events = session_new.query(Event_new).filter(cast(Event_new.when_added, Date) == date).all()
+        tweets_ids = [tweet.tweet_id for tweet in tweets]
+        event_tweets = session_new.query(EventTweet).filter(
+            EventTweet.tweet_id.in_(tweets_ids)).all()
+        tweets_urls = session_new.query(TweetURL_new).filter(TweetURL_new.tweet_id.in_(tweets_ids)).all()
+        urls_ids = [tweet_url.url_id for tweet_url in tweets_urls]
+        short_urls = session_new.query(ShortURL).filter(ShortURL.id.in_(urls_ids)).all()
+        expanded_urls_ids = [short_url.expanded_id for short_url in short_urls]
+        expanded_urls = session_new.query(ExpandedURL).filter(ExpandedURL.id.in_(expanded_urls_ids)).all()
+        events_groups = session_new.query(EventGroup).filter(EventGroup.name.in_(names)).all()
+
+        for (url, expanded, tweet_url) in tqdm(zip(short_urls, expanded_urls, tweets_urls)):
+            session_new.delete(url)
+            session_new.delete(expanded)
+            session_new.delete(tweet_url)
+
+        for (event_tweet, tweet) in tqdm(zip(event_tweets, tweets)):
+            session_new.delete(event_tweet)
+            session_new.delete(tweet)
+
+        for event in tqdm(events):
+            session_new.delete(event)
+
+        for group in tqdm(events_groups):
+            session_new.delete(group)
+
+
+delete_old_tweets(date(year=2017, month=11, day=6))  # o la fecha que sea
 # load_tweets()
 # load_urls()
 # load_events()
-load_eventgroup()
+# load_eventgroup()
