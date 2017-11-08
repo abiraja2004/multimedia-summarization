@@ -1,6 +1,5 @@
 """Convert the info in the old database in the new schema"""
 from collections import defaultdict
-from datetime import date
 
 from sqlalchemy import create_engine, cast, Date
 from sqlalchemy.orm import sessionmaker
@@ -120,8 +119,8 @@ def delete_old_tweets(date):
             session_new.delete(group)
 
 
-delete_old_tweets(date(year=2017, month=11, day=6))  # o la fecha que sea
-# load_tweets()
-# load_urls()
-# load_events()
-# load_eventgroup()
+# delete_old_tweets(date(year=2017, month=11, day=6))  # o la fecha que sea
+load_tweets()
+load_urls()
+load_events()
+load_eventgroup()

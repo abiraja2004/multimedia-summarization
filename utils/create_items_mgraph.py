@@ -7,17 +7,16 @@ from pymongo import MongoClient
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from db import datasets
-from db.engines import engine_lmartine as engine
+from db.engines import connect_to_server
 from db.events import get_tweets
-from db.models_new import User, Tweet
+from db.models_new import User, Tweet, EventGroup
 from utils.download_tweets import chunks
 
 client = MongoClient()
 
 
 def insert_items(event_ids, event_name, session):
-    db = client['tweets_' + event_name]
+    db = client[event_name]
     collection = db['tweets_collection']
     data = transform(event_ids, event_name, session)
     chunks_tweets = chunks(data, 100)
@@ -26,12 +25,13 @@ def insert_items(event_ids, event_name, session):
 
 
 def transform(event_ids, event_name, session):
-    tweets = get_tweets(event_name, event_ids, session)
+    tweets = get_tweets(event_name, event_ids, session, filtering=True)[:100000]
     print(len(tweets))
     data = []
     for tweet in tqdm(tweets):
         item = create_item_mgraph(tweet, session)
         data.append(item)
+    print(len(data))
     return data
 
 
@@ -50,10 +50,14 @@ def create_item_mgraph(tweet, session):
 
 
 if __name__ == '__main__':
-    name = 'irma'
-    ids = datasets.irma
+    name = 'hurricane_irma2'
 
-    Session = sessionmaker(engine, autocommit=True)
-    session = Session()
+    connect = lambda: connect_to_server(username="lmartinez", host="172.17.69.88", ssh_pkey="/home/luis/.ssh/id_rsa")
+    with connect() as engine:
+        Session = sessionmaker(engine, autocommit=True)
+        session = Session()
 
-    insert_items(ids, name, session)
+        event = session.query(EventGroup).filter(EventGroup.name == name).first()
+        ids = list(map(int, event.event_ids.split(',')))
+
+        insert_items(ids, name, session)

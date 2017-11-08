@@ -3,6 +3,7 @@
 """
 import json
 import re
+import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -11,12 +12,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sqlalchemy.orm import sessionmaker
 
 import settings
-from db import datasets, events
+from db import events
 from db.engines import engine_lmartine as engine
+from db.models_new import EventGroup
 from evaluation.automatic_evaluation import remove_and_steam
 
-event_name = 'irma'
-event_ids = datasets.irma
+Session = sessionmaker(engine, autocommit=True)
+session = Session()
+
+event_name = 'libya_hotel'
+event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
+event_ids = list(map(int, event.event_ids.split(',')))
 
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
@@ -90,9 +96,8 @@ def phrase_reinforcement(n_cluster):
         create_json_topic(n_cluster)
 
     path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'system').__str__() + '/'
-    print(path_summaries)
-    # subprocess.call(['java', '-jar', 'TwitterSummaryData.jar', event_name + '.txt', path_summaries])
-    # save_summary(event_name)
+    subprocess.call(['java', '-jar', 'TwitterSummaryData.jar', event_name + '.txt', path_summaries])
+    save_summary(event_name)
     print(get_tweets_ids())
 
 

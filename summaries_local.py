@@ -5,30 +5,29 @@ Para correr desde el "server"
 import json
 import logging
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader
 
+from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
 from db import events
-from db.engines import engine_of215 as engine
+from db.engines import engine_lmartine as engine
 from db.models_new import Document, Cluster, DocumentCluster
-
-import sys
-
+from ranking.ranking_cluster_timeimpact import rank_clusters
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
 
 number_summaries = 5
 
+
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
-event_name = sys.argv[1]
+event_name = 'hurricane_irma2'
 event_id = events.get_eventgroup_id(event_name, session)
 
-results_dir = Path('results', event_name)
+results_dir = Path('results', event_name + '_2')
 if not results_dir.exists():
     results_dir.mkdir()
 
@@ -56,9 +55,9 @@ for i, cluster in tqdm(enumerate(clusters), total=len(clusters)):
     fname = name(params)
 
     j_cluster = []
+    sort_labels = rank_clusters(cluster.id, session)
     with (results_dir / fname).open('w') as f:
-        # TODO sort filter clusters
-        for j in range(n_clusters):
+        for j in sort_labels:
             docs_in_cluster_j = [d for d, l in document_cluster if l.label == j]
 
             if len(docs_in_cluster_j) == 1:
