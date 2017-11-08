@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+      .container {
+          max-width: 500px;
+          padding-top: 50px;
+          margin: 0 auto;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Agglomerative Clustering/discourse (n_clusters: 10)</h1>
+
+    <pre id="json"></pre>
+
+            <h2>Cluster 1</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886757957935104"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886798491521024"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886537702379520"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886583420170242"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886604949557249"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 2</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591861372499136513"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591861845197201409"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591872441112240128"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591872438314598401"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591870089361805312"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 3</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591857200471019520"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591857199191732224"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591857195777531904"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591857191042162688"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 4</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886876136509440"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886375164706816"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591880063278260224"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591881744120328194"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591868183059013632"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 5</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591869136776507392"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591864121462665216"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591862723132006400"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591857404775534592"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591849722052214785"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+            <h2>Cluster 6</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591886803746983936"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591880828654788608"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591879534896492545"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591879069886652417"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/591877433747378176"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+    
+</div>
+<script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script>
+    var data = {"name": "Agglomerative Clustering", "rep": "discourse", "rep_params": {"a": 0.001}, "params": {"affinity": "cosine", "compute_full_tree": "auto", "connectivity": null, "linkage": "average", "n_clusters": 10}}
+    document.getElementById("json").innerHTML = JSON.stringify(data, undefined, 2);
+</script>
+</body>
+</html>

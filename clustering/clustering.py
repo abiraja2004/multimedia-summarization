@@ -29,7 +29,7 @@ event_id = events.get_eventgroup_id(event_name, session)
 
 if rep == "fasttext":
     input_vectors, documents = get_fasttext_vectors(event_name, session)
-    rep_params = {"obs": "avg wordvectors"}
+    rep_params = {}
 elif rep == "tfidf":
     input_vectors, tfidf, documents = get_tfidf_vectors(event_name, session)
     rep_params = tfidf.get_params()
@@ -48,7 +48,7 @@ else:
 affinities = ('cosine', )
 linkages = ('complete', 'average')
 n_clusterss = (5, 10, 20, 30)
-tau = 0.7
+tau = 0.9
 
 methods = list()
 

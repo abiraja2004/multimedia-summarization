@@ -30,6 +30,8 @@ from document_generation.documents import get_representatives
 from nlp.filter_tweets import filter_tweets
 from nlp.tokenizer import Tokenizer
 
+import sys
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
 tokenizer = Tokenizer()
@@ -37,7 +39,8 @@ Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
 # custom variables
-event_name = 'libya_hotel'
+event_name = sys.argv[1]
+# event_name = 'libya_hotel'
 filtering = False  # select tweets already filtered?
 # filtered tweet == tweet with few hashtags / urls
 
