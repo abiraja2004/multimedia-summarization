@@ -152,8 +152,8 @@ def save_documents(representatives: List[Tweet],
                                              total=len(representatives)):
             total_replies = 0
             for tw_id in tweet_ids:
-                tweet = tweets[tw_id]
-                if tweet.in_reply_to_screen_name or tweet.in_reply_to_status_id or tweet.in_reply_to_user_id:
+                tweet = tweets.get(tw_id)
+                if tweet and (tweet.in_reply_to_screen_name or tweet.in_reply_to_status_id or tweet.in_reply_to_user_id):
                     total_replies += 1
 
             doc = Document(text=rep.text,

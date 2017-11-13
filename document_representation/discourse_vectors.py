@@ -23,7 +23,7 @@ from gensim.models import KeyedVectors
 import sys
 
 event_name = sys.argv[1]
-a = int(sys.argv[2])
+a = float(sys.argv[2])
 
 # event_name = "hurricane_irma2"
 # a = .01

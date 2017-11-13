@@ -112,7 +112,7 @@ def get_representatives(url_tweets: Dict[int, List[int]], tweets: Dict[int, Any]
     # rt_of = dict()
 
     for url, tweet_ids in tqdm(url_tweets.items(), total=len(url_tweets)):
-        tweet_objs = [tweets[id_] for id_ in tweet_ids]
+        tweet_objs = [tweets[id_] for id_ in tweet_ids if id_ in tweets]
         non_rts = list(filter(lambda t_: not t_.is_a_retweet, tweet_objs))
 
         # privilege earliest original tweet
@@ -126,7 +126,7 @@ def get_representatives(url_tweets: Dict[int, List[int]], tweets: Dict[int, Any]
                 tweet = tweet_objs[0]
 
             # else, select the tweet with most RTs and likes
-            else:
+            elif len(tweet_objs) > 1:
                 score = 0
                 tweet = tweet_objs[0]
                 for t in tweet_objs:
@@ -134,7 +134,11 @@ def get_representatives(url_tweets: Dict[int, List[int]], tweets: Dict[int, Any]
                         score = t.retweet_count + t.favorite_count
                         tweet = t
 
-        yield tweet
+            else:
+                tweet = None
+
+        if tweet:
+            yield tweet
 
         """reps[tweet.tweet_id] = tweet
         if tweet.is_a_retweet:

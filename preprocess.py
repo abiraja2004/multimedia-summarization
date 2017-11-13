@@ -54,7 +54,7 @@ tweets, urls, tweet_url, url_tweets = events.get_tweets_and_urls(event_name, eve
 
 if not filtering:
     # filter out tweets with several urls or hashtags: T => T'
-    tweets2 = filter_tweets(tweets, tokenizer)
+    tweets = filter_tweets(tweets, tokenizer)
     # set tweets to is_filtered = 1 in DB
     events.set_filtered_tweets(tweets, session)
 
