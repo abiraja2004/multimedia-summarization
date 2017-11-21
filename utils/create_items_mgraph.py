@@ -25,13 +25,13 @@ def insert_items(event_ids, event_name, session):
 
 
 def transform(event_ids, event_name, session):
-    tweets = get_tweets(event_name, event_ids, session, filtering=True)[:100000]
-    print(len(tweets))
+    tweets_full = get_tweets(event_name, event_ids, session, filtering=True)
+    tweets = tweets_full[200000:300000]
+    del tweets_full
     data = []
     for tweet in tqdm(tweets):
         item = create_item_mgraph(tweet, session)
         data.append(item)
-    print(len(data))
     return data
 
 

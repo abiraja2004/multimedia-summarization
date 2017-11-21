@@ -27,7 +27,7 @@ session = Session()
 event_name = 'hurricane_irma2'
 event_id = events.get_eventgroup_id(event_name, session)
 
-results_dir = Path('results', event_name + '_2')
+results_dir = Path('results', event_name)
 if not results_dir.exists():
     results_dir.mkdir()
 

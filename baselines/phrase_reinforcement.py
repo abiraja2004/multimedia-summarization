@@ -14,13 +14,13 @@ from sqlalchemy.orm import sessionmaker
 import settings
 from db import events
 from db.engines import engine_lmartine as engine
-from db.models_new import EventGroup
+from db.models_new import EventGroup, Tweet
 from evaluation.automatic_evaluation import remove_and_steam
 
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
-event_name = 'libya_hotel'
+event_name = 'nepal_earthquake'
 event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
 event_ids = list(map(int, event.event_ids.split(',')))
 
@@ -32,9 +32,21 @@ def clean_tweet(tweet):
     return ' '.join(remove_and_steam(re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))), True))
 
 
+def filter_tweet(text):
+    if text.count('#') > 2:
+        return False
+    elif text.count('http') > 2:
+        return False
+    elif text.count('@') > 2:
+        return False
+    return True
+
+
 def clustering(n_clusters):
     tweets = events.get_tweets(event_name, event_ids, session)
-    # tweets = events.get_tweets_from_ids(tweets_ids, session)
+    print(len(tweets))
+    tweets = [tweet for tweet in tweets if filter_tweet(tweet.text)]
+    print(len(tweets))
     clean_tweets = [clean_tweet(tweet) for tweet in tweets]
     vectorizer = TfidfVectorizer()
     tfidf = vectorizer.fit_transform(clean_tweets)
@@ -53,20 +65,14 @@ def create_json_topic(n_clusters):
 
     for k, v in tweet_dict.items():
         aux_dict = {'topic': k, 'tweets': v}
-        with open(event_name + '.txt', 'a') as file:
+        with open(event_name + '_' + str(n_clusters) + '.txt', 'a') as file:
             json.dump(aux_dict, file)
             file.write('\n')
 
 
-def clean_text(text):
-    clean = re.sub(r"http\S+", '', text)
-    clean = ' '.join(e for e in clean if e.isalnum())
-    return clean
-
-
-def save_summary(event):
+def save_summary(event, n_cluster):
     path_summary = Path(settings.LOCAL_DATA_DIR_2, 'data', event, 'summaries', 'system',
-                        'phrase_reinforcement_summary.txt')
+                        f'phrase_reinforcement_{n_cluster}.txt')
     path_json = Path(settings.LOCAL_DATA_DIR_2, 'data', event, 'phrase_reinforcement', 'rawData.json')
     with path_json.open('r') as json_file, path_summary.open('w') as summary_file:
         phrase_json = json.load(json_file)
@@ -76,29 +82,32 @@ def save_summary(event):
                 summary_file.write(summary + '\n')
 
 
-def get_tweets_ids():
-    tweets = events.get_tweets(event_name, event_ids, session, True)
-    tweets_text = {tweet.text: tweet.id for tweet in tweets}
+def get_tweets_ids(n_cluster):
     path_summary = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'system',
-                        'phrase_reinforcement_summary.txt')
-    with path_summary.open('r') as summary:
+                        f'phrase_reinforcement_{n_cluster}.txt')
+    with path_summary.open('r+') as summary:
         ids = []
-        keys_clean = list(map(lambda x: clean_text(x), tweets_text.keys()))
-        for line in summary.readlines():
-            line = clean_text(line)
-            if line in keys_clean:
-                ids.append(tweets_text.get(line))
+        for line in summary:
+            line = line.replace('\n', '')
+            tweet = session.query(Tweet).filter(Tweet.text.like(f'%{line}%')).first()
+            ids.append(str(tweet.tweet_id) + '\n')
+        summary.seek(0)
+        summary.truncate()
+        summary.writelines(ids)
     return ids
 
 
 def phrase_reinforcement(n_cluster):
-    if not Path(event_name + '.txt').exists():
+    if not Path(event_name + '_' + str(n_cluster) + '.txt').exists():
         create_json_topic(n_cluster)
 
-    path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'system').__str__() + '/'
-    subprocess.call(['java', '-jar', 'TwitterSummaryData.jar', event_name + '.txt', path_summaries])
-    save_summary(event_name)
-    print(get_tweets_ids())
+    path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'phrase_reinforcement').__str__() + '/'
+    subprocess.call(
+        ['java', '-jar', 'TwitterSummaryData.jar', event_name + '_' + str(n_cluster) + '.txt', path_summaries])
+    save_summary(event_name, n_cluster)
+    print(get_tweets_ids(n_cluster))
 
 
-phrase_reinforcement(15)
+n_cluster = [15, 20, 25, 30]
+for n in n_cluster:
+    phrase_reinforcement(n)

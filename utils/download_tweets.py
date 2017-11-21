@@ -7,9 +7,9 @@ import tweepy
 from pymongo import MongoClient
 from sqlalchemy.orm import sessionmaker
 
-from db import datasets
 from db.engines import engine_lmartine as engine
 from db.events import get_tweets
+from db.models_new import EventGroup
 
 consumer_key = "8EnRbS2eN4iRm3wkMNJsK9Eed"
 consumer_secret = "lqAwxv2ajssv54z3jAKVAhVeQGKJzeKbCB8qFkfd6XVEYgDm1b"
@@ -30,17 +30,19 @@ def chunks(l, n):
 
 if __name__ == '__main__':
 
+    event_name = 'nepal_earthquake'
+
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
 
-    event_name = "nepal_earthquake"
-    events_id = datasets.nepal_earthquake
+    event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
+    ids = list(map(int, event.event_ids.split(',')))
 
     client = MongoClient()
     db = client.tweets_nepal
     collection = db.tweets_collection
 
-    tweets = get_tweets(event_name, events_id, session)
+    tweets = get_tweets(event_name, ids, session)
     tweets_ids = [tweet.tweet_id for tweet in tweets]
 
     chunks_tweets = chunks(tweets_ids, 100)
