@@ -33,7 +33,7 @@ def gen_summary(event_name, cluster, session, sim_threshold=0.5):
         .join(Tweet, Tweet.tweet_id == Document.tweet_id) \
         .filter(DocumentCluster.cluster_id == cluster.id).all()
 
-    params = json.loads(cluster.json)
+    params = eval(cluster.json)
     fname = f"{event_name}_{cluster.id}.html"
 
     j_cluster = []
