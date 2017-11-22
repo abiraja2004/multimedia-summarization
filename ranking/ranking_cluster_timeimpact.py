@@ -49,21 +49,3 @@ def rank_clusters(clustering_id, session):
     labels_ranked = np.argsort(first_bins)[::-1]
 
     return labels_ranked
-
-    """
-    no considerar todos los tweets asociados a un documento, son demasiados
-    
-    tweets = session.query(Tweet)\
-        .join(DocumentTweet, DocumentTweet.tweet_id == Tweet.tweet_id)\
-        .filter(DocumentCluster.document_id == doc_id)\
-        .all()
-
-    tweets_ = dict()
-    for t in tqdm(tweets):
-        tweets_[t.tweet_id] = t
-W
-    for t in tweets_.values():
-        times.append(t.created_at)
-
-    times_per_cluster[label] = times
-    """

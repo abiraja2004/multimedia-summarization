@@ -153,6 +153,7 @@ class Document(Base):
     total_tweets = Column(Integer)
     embedded_html = Column(Text)
     expanded_url_id = Column(Integer)
+    eventgroup_id = Column(Integer)
 
     def __str__(self):
         return f"<Document [id={self.tweet_id}, text={self.text}>"

@@ -24,7 +24,7 @@ while True:
     info, short_tweet = expand_urls.expand_urls(nlp, tweets, n_threads=n_threads)
     info_items = list(info.items())
 
-    logger.info(f"saving {len(info_items)} new urls")
+    logger.info(f"saving {len(info_items)} _new urls")
     urls_to_save = []
 
     for short, (long, title, clean) in tqdm(info_items):

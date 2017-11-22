@@ -5,9 +5,10 @@ given event ids, get event info
 from typing import List
 from db.models_new import *
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Tuple
 from tqdm import tqdm
 import numpy as np
+from sqlalchemy.orm.util import aliased
 
 import logging
 
@@ -64,17 +65,16 @@ def get_tweets_and_urls(event_name: str, event_ids: List[int], session, filterin
         query = query.filter(Tweet.is_filtered)
 
     tweets = dict()
-    urls = dict()
-    tweet_url = dict()
     url_tweets = defaultdict(set)
+    urls = dict()
 
     for tweet, url in tqdm(query):
-        tweets[tweet.tweet_id] = tweet
-        urls[url.id] = url
-        tweet_url[tweet.tweet_id] = url.id
-        url_tweets[url.id].add(tweet.tweet_id)
+        t_id = tweet.tweet_id
+        tweets[t_id] = tweet
+        url_tweets[url.expanded_clean.strip()].add(t_id)
+        urls[url.expanded_clean.strip()] = url.id
 
-    return tweets, urls, tweet_url, url_tweets
+    return tweets, url_tweets, urls
 
 
 def get_tweet_ids(event_name: str, event_ids: List[int], session):
@@ -135,11 +135,25 @@ def set_filtered_tweets(tweets: Dict[int, Tweet], session):
     with session.begin():
         for tweet_id, tweet in tqdm(tweets.items(), desc="setting filtered status on tweets"):
             db_tweet = session.query(Tweet).filter(Tweet.tweet_id == tweet_id).first()
-            db_tweet.is_filtered = True
+            if db_tweet:
+                db_tweet.is_filtered = True
 
 
-def save_documents(representatives: List[Tweet],
-                   url_tweets: Dict[int, List[int]],
+def remove_filtered_status(tweets, session):
+    with session.begin():
+        for tweet_id, tweet in tqdm(tweets.items(), desc="setting filtered status on tweets"):
+
+            db_tweet = session.query(Tweet)\
+                .filter(Tweet.tweet_id == tweet_id)\
+                .filter(Tweet.is_filtered)\
+                .all()
+
+            for t in db_tweet:
+                t.is_filtered = False
+
+
+def save_documents(representatives: List[Tuple[int, str, Tweet]],
+                   url_tweets: Dict[str, List[int]],
                    tweets: Dict[int, Tweet],
                    event: EventGroup,
                    session):
@@ -147,13 +161,15 @@ def save_documents(representatives: List[Tweet],
     with session.begin():
         docs = []
 
-        for rep, (url_id, tweet_ids) in tqdm(zip(representatives, url_tweets.items()),
-                                             desc="Creating/saving documents",
-                                             total=len(representatives)):
+        for url_id, clean_url, rep in tqdm(representatives):
             total_replies = 0
+            tweet_ids = url_tweets[clean_url]
+
             for tw_id in tweet_ids:
                 tweet = tweets.get(tw_id)
-                if tweet and (tweet.in_reply_to_screen_name or tweet.in_reply_to_status_id or tweet.in_reply_to_user_id):
+                if tweet and (tweet.in_reply_to_screen_name
+                              or tweet.in_reply_to_status_id
+                              or tweet.in_reply_to_user_id):
                     total_replies += 1
 
             doc = Document(text=rep.text,
@@ -163,7 +179,8 @@ def save_documents(representatives: List[Tweet],
                            total_replies=total_replies,
                            total_tweets=len(tweet_ids),
                            embedded_html=None,
-                           expanded_url_id=url_id)
+                           expanded_url_id=url_id,
+                           eventgroup_id=event.id)
 
             session.add(doc)
             docs.append(doc)
@@ -196,6 +213,25 @@ def get_documents_from_event(name: str, session):
         doc_id[doc.tweet_id] = (doc, tweet)
 
     return np.array(list(doc_id.values()))
+
+
+def get_documents_from_event2(eventgroup_id, session, filter_tweets=True) -> Dict[int, List[Tweet]]:
+    """gets *all* tweets for each document"""
+
+    tweet_dt = session.query(Tweet, DocumentTweet) \
+        .join(DocumentTweet, DocumentTweet.tweet_id == Tweet.tweet_id) \
+        .join(Document, Document.id == DocumentTweet.document_id)\
+        .filter(Document.eventgroup_id == eventgroup_id)\
+        .yield_per(5000)
+
+    if filter_tweets:
+        tweet_dt = tweet_dt.filter(Tweet.is_filtered)
+
+    docs = defaultdict(list)
+    for t, dt in tweet_dt:
+        docs[dt.document_id].append(t)
+
+    return docs
 
 
 def get_eventgroup_id(event_name: str, session):

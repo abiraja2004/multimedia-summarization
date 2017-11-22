@@ -1,99 +1,159 @@
-from db.models_new import *
-from db.engines import engine_of215 as engine
-from sqlalchemy.orm import sessionmaker
 import logging
-from db.events import get_documents_from_event
-from sklearn.decomposition import PCA
-
-import spacy
-import settings
-from operator import itemgetter
-from collections import defaultdict
-from tqdm import tqdm, trange
-import time
 import re
+from pathlib import Path
 
 import numpy as np
 import spacy
-
 # load pre-trained vectors
 from gensim.models import KeyedVectors
+from sklearn.decomposition import PCA
+from tqdm import tqdm, trange
+
+from db.events import get_documents_from_event, get_documents_from_event2
 
 
-import sys
+def gen_discourse(event_name, a, session):
+    f = Path(f'data/discourse_vectors_event_{event_name}_a_{a}.npy')
+    if f.is_file():
+        logging.info(f"File exists: data/discourse_vectors_event_{event_name}_a_{a}.npy")
+        return
 
-event_name = sys.argv[1]
-a = float(sys.argv[2])
+    nlp = spacy.load('en', parser=False, tagger=False, entity=False)
 
-# event_name = "hurricane_irma2"
-# a = .01
+    documents = get_documents_from_event(event_name, session)
 
-logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
-Session = sessionmaker(engine, autocommit=True)
-session = Session()
+    path = '/home/mquezada/phd/multimedia-summarization/data/word_embeddings/ft_alltweets_model.vec'
+    w2v = KeyedVectors.load_word2vec_format(path)
 
-nlp = spacy.load('en', parser=False, tagger=False, entity=False)
+    freq_path = '/home/mquezada/phd/multimedia-summarization/data/word_embeddings/wordfrequencies_relative.tsv'
+    freqs = dict()
 
-documents = get_documents_from_event(event_name, session)
+    pca = PCA(n_components=1)
 
-path = '/home/mquezada/phd/multimedia-summarization/data/ft_alltweets_model.vec'
-w2v = KeyedVectors.load_word2vec_format(path)
+    with open(freq_path) as f:
+        for line in f:
+            word, freq = line.split()
+            freqs[word] = float(freq)
 
-freq_path = '/home/mquezada/phd/multimedia-summarization/data/wordfrequencies_relative.tsv'
-freqs = dict()
+    doc_stream = nlp.pipe([doc.text for doc in documents[:, 0]], n_threads=16)
+    vs = np.empty((len(documents), w2v.vector_size))
 
-pca = PCA(n_components=1)
+    for i, doc in tqdm(enumerate(doc_stream), total=len(documents), desc="creating vectors"):
+        doc_vector = []
 
-with open(freq_path) as f:
-    for line in f:
-        word, freq = line.split()
-        freqs[word] = float(freq)
+        # clean documents to the same WE format
+        indexes = [m.span() for m in re.finditer('#\w+', doc.text, flags=re.IGNORECASE)]
+        for start, end in indexes:
+            doc.merge(start_idx=start, end_idx=end)
 
-doc_stream = nlp.pipe([doc.text for doc in documents[:, 0]], n_threads=16)
-vs = np.empty((len(documents), w2v.vector_size))
+        for token in doc:
+            if token.pos_ == "PUNCT" or \
+                    token.is_punct or \
+                    token.is_space or \
+                    token.text.startswith('@') or \
+                    token.like_url:
+                continue
 
-for i, doc in tqdm(enumerate(doc_stream), total=len(documents), desc="creating vectors"):
-    doc_vector = []
+            if token.lower_ in w2v:
+                w = token.lower_
+                vw = w2v[w]
+                pw = freqs[w]
 
-    # clean documents to the same WE format
-    indexes = [m.span() for m in re.finditer('#\w+', doc.text, flags=re.IGNORECASE)]
-    for start, end in indexes:
-        doc.merge(start_idx=start, end_idx=end)
+                doc_vector.append(a / (a + pw) * vw)
 
-    for token in doc:
-        if token.pos_ == "PUNCT" or \
-                token.is_punct or \
-                token.is_space or \
-                token.text.startswith('@') or \
-                token.like_url:
-            continue
+        # representative vector is the average of all words
+        vector = np.mean(doc_vector, axis=0)[None]
 
-        if token.lower_ in w2v:
-            w = token.lower_
-            vw = w2v[w]
-            pw = freqs[w]
+        vs[i] = vector
 
-            doc_vector.append(a / (a + pw) * vw)
+    # all indices
+    idx = list(range(len(vs)))
+    remove_idx = np.where(np.isnan(vs).any(axis=1))[0]
 
-    # representative vector is the average of all words
-    vector = np.mean(doc_vector, axis=0)[None]
+    final_indices = np.array([i for i in idx if i not in remove_idx])
+    vs = np.array([vs[i] for i in idx if i not in remove_idx])
 
-    vs[i] = vector
+    logging.info("fitting pca")
+    pca.fit(vs)
+    u = pca.components_
 
-# all indices
-idx = list(range(len(vs)))
-remove_idx = np.where(np.isnan(vs).any(axis=1))[0]
+    for i in trange(vs.shape[0], desc="moving vectors"):
+        vs[i] = vs[i] - (u.T.dot(u)).dot(vs[i])
 
-final_indices = np.array([i for i in idx if i not in remove_idx])
-vs = np.array([vs[i] for i in idx if i not in remove_idx])
+    np.save(f'data/discourse_vectors_event_{event_name}_a_{a}.npy', arr=vs)
+    np.save(f'data/discourse_vectors_indices_{event_name}_a_{a}.npy', arr=final_indices)
+    # doc_vectors = np.load(f'fasttext_vectors_event_{event_name}.npy')
 
-logging.info("fitting pca")
-pca.fit(vs)
-u = pca.components_
 
-for i in trange(vs.shape[0], desc="moving vectors"):
-    vs[i] = vs[i] - (u.T.dot(u)).dot(vs[i])
+def gen_discourse2(eventgroup_id, event_name, a, session):
+    f = Path(f'data/discourse_vectors_event_{event_name}_a_{a}.npy')
+    if f.is_file():
+        logging.info(f"File exists: data/discourse_vectors_event_{event_name}_a_{a}.npy")
+        return
 
-np.save(f'data/discourse_vectors_event_{event_name}_a_{a}.npy', arr=vs)
-np.save(f'data/discourse_vectors_indices_{event_name}_a_{a}.npy', arr=final_indices)
-# doc_vectors = np.load(f'fasttext_vectors_event_{event_name}.npy')
+    nlp = spacy.load('en', parser=False, tagger=False, entity=False)
+
+    id_tweets = get_documents_from_event2(eventgroup_id, session)
+    documents = [' '.join([tweet.text for tweet in doc]) for doc in id_tweets.values()]
+
+    path = '/home/mquezada/phd/multimedia-summarization/data/word_embeddings/ft_alltweets_model.vec'
+    w2v = KeyedVectors.load_word2vec_format(path)
+
+    freq_path = '/home/mquezada/phd/multimedia-summarization/data/word_embeddings/wordfrequencies_relative.tsv'
+    freqs = dict()
+
+    pca = PCA(n_components=1)
+
+    with open(freq_path) as f:
+        for line in f:
+            word, freq = line.split()
+            freqs[word] = float(freq)
+
+    doc_stream = nlp.pipe([doc for doc in documents], n_threads=16)
+    vs = np.empty((len(documents), w2v.vector_size))
+
+    for i, doc in tqdm(enumerate(doc_stream), total=len(documents), desc="creating vectors"):
+        doc_vector = []
+
+        # clean documents to the same WE format
+        indexes = [m.span() for m in re.finditer('#\w+', doc.text, flags=re.IGNORECASE)]
+        for start, end in indexes:
+            doc.merge(start_idx=start, end_idx=end)
+
+        for token in doc:
+            if token.pos_ == "PUNCT" or \
+                    token.is_punct or \
+                    token.is_space or \
+                    token.text.startswith('@') or \
+                    token.like_url:
+                continue
+
+            if token.lower_ in w2v:
+                w = token.lower_
+                vw = w2v[w]
+                pw = freqs[w]
+
+                doc_vector.append(a / (a + pw) * vw)
+
+        # representative vector is the average of all words
+        vector = np.mean(doc_vector, axis=0)[None]
+
+        vs[i] = vector
+
+    # all indices
+    idx = list(range(len(vs)))
+    remove_idx = np.where(np.isnan(vs).any(axis=1))[0]
+
+    final_indices = np.array([i for i in idx if i not in remove_idx])
+    vs = np.array([vs[i] for i in idx if i not in remove_idx])
+
+    logging.info("fitting pca")
+    pca.fit(vs)
+    u = pca.components_
+
+    for i in trange(vs.shape[0], desc="moving vectors"):
+        vs[i] = vs[i] - (u.T.dot(u)).dot(vs[i])
+
+    np.save(f'data/discourse_vectors_event_{event_name}_a_{a}.npy', arr=vs)
+    np.save(f'data/discourse_vectors_indices_{event_name}_a_{a}.npy', arr=final_indices)
+    # doc_vectors = np.load(f'fasttext_vectors_event_{event_name}.npy')
