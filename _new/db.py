@@ -17,6 +17,8 @@ session = Session()
 def get_eventgroup_id(event_name: str) -> EventGroup:
     return session.query(EventGroup).filter(EventGroup.name == event_name).first()
 
+def get_eventgroup_name(event_id: int):
+    return session.query(EventGroup).filter(EventGroup.id== event_id).first()
 
 def get_documents(eventgroup_id: int, full=True) -> Dict[int, List[Union[Tweet, Document]]]:
     if full:
