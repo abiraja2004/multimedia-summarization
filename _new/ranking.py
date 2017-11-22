@@ -1,7 +1,6 @@
 # For a specific cluster calculate the distribution of time intervals beteween the tweets
 # 54,25
 
-import json
 from collections import OrderedDict
 
 import numpy as np
@@ -12,7 +11,7 @@ from models import Cluster, DocumentCluster, Document, Tweet
 
 def rank_clusters(clustering_id, session):
     clustering = session.query(Cluster).filter(Cluster.id == clustering_id).first()
-    params = json.loads(clustering.json)['params']
+    params = eval(clustering.json)['params']
     n_clusters = params['n_clusters']
 
     times_per_cluster = OrderedDict()
