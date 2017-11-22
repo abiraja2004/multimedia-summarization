@@ -2,8 +2,8 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-number_summaries = 20
-event_name = 'libya_hotel'
+number_summaries = 30
+event_name = 'nepal_earthquake'
 path_summaries = Path('data', event_name, 'summaries', 'system')
 summaries_files = [file for file in path_summaries.iterdir() if file.is_file()]
 
@@ -30,7 +30,7 @@ def parse_txt_summary(path_file):
 results_dir = Path('results', event_name)
 for file in summaries_files:
     env = Environment(loader=FileSystemLoader('results'), trim_blocks=True)
-    if file.name == 'mgraph.tsv':
+    if file.name == 'mgraph.txt':
         file_name = Path(f'mgraph_{number_summaries}.html')
         ids = parse_mgraph(file)
         with (results_dir / file_name).open('w') as f:

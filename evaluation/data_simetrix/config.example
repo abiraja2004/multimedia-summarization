@@ -1,0 +1,29 @@
+===== Remove stopwords and do stemming? (Y/N) =====
+ 
+performStemming = Y
+
+removeStopWords = Y
+stopFilePath = /home/luis/PycharmProjects/multimedia-summarization/evaluation/data_simetrix/smart_common_words.txt
+
+
+
+===== Features to compute (place Y/N) =====
+
+divergence = Y
+
+frequencyFeatures = Y
+
+
+---- For cosine and topic word features if "Y", must also specify word counts from a large corpus -----
+---- See README for details about file format -----
+
+cosineOverlap = N
+
+topicWordFeatures = N
+
+backgroundCorpusFreqCounts = /home/luis/PycharmProjects/multimedia-summarization/evaluation/data_simetrix/bgFreqCounts.unstemmed.txt
+
+backgroundIdfUnstemmed = /home/luis/Universidad/simetrix/data/bgIdfValues.unstemmed.txt
+
+backgroundIdfStemmed = /home/luis/Universidad/simetrix/data/bgIdfValues.stemmed.txt
+
