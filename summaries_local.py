@@ -7,67 +7,68 @@ import logging
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
-from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from db import events
-from db.engines import engine_lmartine as engine
-from db.models_new import Document, Cluster, DocumentCluster
+from db.models_new import Document, DocumentCluster, Tweet
 from ranking.ranking_cluster_timeimpact import rank_clusters
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
 
-number_summaries = 5
+
+def jaccard(t1: set, t2: set):
+    return len(t1 & t2) / len(t1 | t2)
 
 
-Session = sessionmaker(engine, autocommit=True)
-session = Session()
+def gen_summary(event_name, cluster, session, sim_threshold=0.5):
+    results_dir = Path('results', event_name)
+    if not results_dir.exists():
+        results_dir.mkdir()
 
-event_name = 'hurricane_irma2'
-event_id = events.get_eventgroup_id(event_name, session)
+    tweets_per_cluster = 5
 
-results_dir = Path('results', event_name + '_2')
-if not results_dir.exists():
-    results_dir.mkdir()
-
-
-def name(params):
-    tech = "-".join(params["name"].split())
-    n_clusters = params['params']['n_clusters']
-    rep = params["rep"]
-
-    fname = f'cl_{tech}_{rep}_nclusters_{n_clusters}.html'
-
-    return Path(fname)
-
-clusters = session.query(Cluster).filter(Cluster.eventgroup_id == event_id).all()
-
-for i, cluster in tqdm(enumerate(clusters), total=len(clusters)):
     env = Environment(loader=FileSystemLoader('results'), trim_blocks=True)
 
-    document_cluster = session.query(Document, DocumentCluster) \
+    document_cluster = session.query(Document, DocumentCluster, Tweet) \
         .join(DocumentCluster, DocumentCluster.document_id == Document.id) \
+        .join(Tweet, Tweet.tweet_id == Document.tweet_id) \
         .filter(DocumentCluster.cluster_id == cluster.id).all()
 
     params = json.loads(cluster.json)
-    n_clusters = params['params']['n_clusters']
-    fname = name(params)
+    fname = f"{event_name}_{cluster.id}.html"
 
     j_cluster = []
     sort_labels = rank_clusters(cluster.id, session)
     with (results_dir / fname).open('w') as f:
-        for j in sort_labels:
-            docs_in_cluster_j = [d for d, l in document_cluster if l.label == j]
+
+        for j in tqdm(sort_labels):
+            docs_in_cluster_j = [(doc, tweet) for doc, doc_cluster, tweet in document_cluster if doc_cluster.label == j]
 
             if len(docs_in_cluster_j) == 1:
                 continue
 
-            docs_in_cluster_j.sort(key=lambda x: x.total_rts, reverse=True)
-            j_cluster.append([doc.tweet_id for doc in docs_in_cluster_j[:number_summaries]])
+            sorted_docs = sorted(docs_in_cluster_j, key=lambda x: x[0].total_rts, reverse=True)
+
+            t0 = set(map(lambda x: x.lower(), sorted_docs[0][1].text))
+            selected_tweets = [t0]
+            selected_ids = [sorted_docs[0][1].tweet_id]
+
+            for _, tweet in sorted_docs[1:]:
+                t1 = set(map(lambda s: s.lower(), tweet.text.split()))
+                id1 = tweet.tweet_id
+
+                if any(jaccard(t1, t2) > sim_threshold for t2 in selected_tweets):
+                    continue
+                else:
+                    selected_ids.append(id1)
+
+                if len(selected_ids) == tweets_per_cluster:
+                    break
+
+            j_cluster.append(selected_ids)
 
         t = env.get_template('results_template.html').render(params=params,
                                                              json=json.dumps(params),
-                                                             clusters=j_cluster)
+                                                             clusters=j_cluster,
+                                                             labels=sort_labels)
         f.write(t)
-
