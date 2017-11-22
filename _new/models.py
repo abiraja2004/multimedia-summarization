@@ -124,6 +124,12 @@ class Cluster(Base):
     eventgroup_id = Column(Integer)
     json = Column(Text)
 
+    def __repr__(self):
+        return f'<Cluster [id={self.id}, event={self.eventgroup_id}]>'
+
+    def __str__(self):
+        return self.__repr__()
+
 
 class DocumentCluster(Base):
     __tablename__ = 'document_cluster'
