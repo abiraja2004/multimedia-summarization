@@ -26,7 +26,6 @@ def gen_summary(event_name, cluster, session, sim_threshold=0.5):
         results_dir.mkdir()
 
     tweets_per_cluster = 5
-
     env = Environment(loader=FileSystemLoader('results'), trim_blocks=True)
 
     document_cluster = session.query(Document, DocumentCluster, Tweet) \

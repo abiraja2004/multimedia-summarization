@@ -149,27 +149,3 @@ def compute_jaccard(event, reference_name, summary_name):
         reference_text = reference.read()
         summary_text = summary.read()
     return dist_jaccard(summary_text, reference_text), dist_jaccard(reference_text, summary_text)
-
-
-def evaluate_event(event_name):
-    print('-------------' + event_name + '--------------')
-
-    compute_rouge(event_name)
-    event_path = Path(LOCAL_DATA_DIR_2, 'data', event_name, 'summaries')
-    references_path = Path(event_path, 'reference')
-    summaries_path = Path(event_path, 'system')
-    references = [x for x in references_path.iterdir() if x.is_file()]
-    summaries = [x for x in summaries_path.iterdir() if x.is_file()]
-
-    for reference in references:
-        for summary in summaries:
-            print('Jensen-Shannon Divergence: ')
-            print(compute_jensen_shannon(event_name, reference.name, summary.name))
-            print('Jaccard Distance')
-            print(compute_jaccard(event_name, reference.name, summary.name))
-
-
-if __name__ == '__main__':
-    evaluate_event('libya_hotel')
-    evaluate_event('oscar_pistorius')
-    evaluate_event('nepal_earthquake')
