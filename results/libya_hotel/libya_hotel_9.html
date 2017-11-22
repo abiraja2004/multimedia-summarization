@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+      .container {
+          max-width: 500px;
+          padding-top: 50px;
+          margin: 0 auto;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Online/fasttext (n_clusters: 3)</h1>
+
+    <pre id="json"></pre>
+
+            <h2>Cluster 2</h2>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/560023094677762048"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/559597191065772032"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/532750944392740865"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/560016075635437568"></a>
+        </blockquote>
+                <blockquote class="twitter-tweet" data-lang="en">
+            <a href="https://twitter.com/jack/status/553710527810371586"></a>
+        </blockquote>
+                <hr>
+        <br><br>
+    
+</div>
+<script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<script>
+    var data = {"name": "Online", "rep": "fasttext", "rep_params": {}, "params": {"tau": 0.1, "n_clusters": 3}}
+    document.getElementById("json").innerHTML = JSON.stringify(data, undefined, 2);
+</script>
+</body>
+</html>

@@ -18,7 +18,7 @@
     <pre id="json"></pre>
 
     {% for cluster in clusters %}
-        <h2>Cluster {{ loop.index }}</h2>
+        <h2>Cluster {{ labels[loop.index] }}</h2>
         {% for id in cluster %}
         <blockquote class="twitter-tweet" data-lang="en">
             <a href="https://twitter.com/jack/status/{{ id }}"></a>
