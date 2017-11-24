@@ -1,19 +1,26 @@
 import re
 from pathlib import Path
 
-'''Clean and save the summary generated'''
+from sqlalchemy.orm import sessionmaker
 
+import settings
+from db.engines import engine_lmartine as engine
+from db.models_new import Tweet
 
-def save_summary_text(event_name, docs, clustering, n_tweets, remove=True):
-    path_summary = Path('data', event_name, 'summaries', 'system',
-                        event_name.replace('_', '') + '_' + clustering + '_' + str(n_tweets) + '.txt')
-    f = open(path_summary, 'a')
-    if remove:
-        docs = [re.sub(r"@\w+", '', re.sub(r"http\S+", '', x.url.replace('#', ''))) for x in docs]
+'''Save the text of the summary, some tweets are not available to be embbebed'''
 
-    f.writelines([x + '\n' for x in docs])
-    f.close()
+Session = sessionmaker(engine, autocommit=True)
+session = Session()
 
+event_name = 'libya_hotel'
+path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'system')
+list_files = [file for file in Path(path_summaries, 'ids').iterdir() if file.is_file() and file.name != 'mgraph.tsv']
 
-def save_summary_ids(event_name, ids, clustering, n_tweets):
-    pass
+for file in list_files:
+    with file.open('r') as f:
+        ids = f.readlines()
+        tweets = session.query(Tweet).filter(Tweet.tweet_id.in_(ids)).all()
+        with Path(path_summaries, f'{file.name[:-4]}_text.txt').open('w') as text_file:
+            tweet_text = [re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))) + '\n' for tweet in
+                          tweets]
+            text_file.writelines(tweet_text)

@@ -1,0 +1,5 @@
+input1 fb /home/luis/Universidad/simetrix/data/sampleInputs/input1 /home/luis/Universidad/simetrix/data/sampleSummaries/input1.fb.txt
+input1 rb /home/luis/Universidad/simetrix/data/sampleInputs/input1 /home/luis/Universidad/simetrix/data/sampleSummaries/input1.rb.txt
+input1 me /home/luis/Universidad/simetrix/data/sampleInputs/input1 /home/luis/Universidad/simetrix/data/sampleSummaries/input1.me.txt
+input1 nb /home/luis/Universidad/simetrix/data/sampleInputs/input1 /home/luis/Universidad/simetrix/data/sampleSummaries/input1.nb.txt
+input1 ts /home/luis/Universidad/simetrix/data/sampleInputs/input1 /home/luis/Universidad/simetrix/data/sampleSummaries/input1.ts.txt

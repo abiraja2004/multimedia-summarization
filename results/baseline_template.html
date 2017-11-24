@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{name}}</title>
+    <style type="text/css">
+        .container {
+            max-width: 500px;
+            padding-top: 50px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>{{name}} {{number_summaries}}</h1>
+
+    {% for id in ids%}
+    <blockquote class="twitter-tweet" data-lang="en">
+        <a href="https://twitter.com/jack/status/{{ id }}"></a>
+    </blockquote>
+    {% endfor %}
+
+</div>
+<script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</body>
+</html>
