@@ -1,7 +1,6 @@
 import re
 import logging
 import spacy
-from multiprocessing import cpu_count
 
 HASHTAG_PLACEHOLDER = 'ZZZPLACEHOLDERZZZ'
 
@@ -28,8 +27,6 @@ class Tokenizer:
                     or token.pos_ == 'PUNCT' \
                     or token.is_punct \
                     or token.is_space:
-                    # or token.lemma_.lower() in stopwords \
-                    # or token.ent_type_ not in allowed_entities:
                 continue
             else:
                 if token.text.startswith(HASHTAG_PLACEHOLDER):

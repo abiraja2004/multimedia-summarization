@@ -225,7 +225,7 @@ class EventGroup(Base):
     event_ids = Column(String(2048))
 
     def __str__(self):
-        return f"<EventGroup [name={self.name}, ids={self.event_ids}]>"
+        return f"<EventGroup [name={self.name}]>"
 
     def __repr__(self):
         return self.__str__()

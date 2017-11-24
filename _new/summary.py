@@ -1,7 +1,3 @@
-"""
-Para correr desde el "server"
-"""
-
 import json
 import logging
 from pathlib import Path
@@ -34,7 +30,10 @@ def gen_summary(event_name, cluster, session, sim_threshold=0.5):
         .filter(DocumentCluster.cluster_id == cluster.id).all()
 
     params = eval(cluster.json)
-    fname = f"{event_name}_{cluster.id}.html"
+    rep = params['repr']
+    n_clusters = params['n_clusters']
+    cluster_algo = params['clustering'].lower()
+    fname = f"{cluster.id}_{cluster_algo}_{n_clusters}_{rep}.html"
 
     j_cluster = []
     sort_labels = rank_clusters(cluster.id, session)
