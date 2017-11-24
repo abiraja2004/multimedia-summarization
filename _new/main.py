@@ -41,7 +41,7 @@ n_clusterss = (5, 10, 20)
 comb = list(product(methods, affinities, linkages)) + [(kmeans, None, None)]
 comb = list(product(comb, n_clusterss))
 
-for fname in tqdm(list(Path('data').glob('representation_*'))):
+for fname in tqdm(list(Path('data/representations/').glob('representation_*'))):
     for (method, affinity, linkage), n_clusters in tqdm(comb):
         event_id = int(fname.as_posix().split('_')[2].split('.')[0])
         name = db.get_eventgroup_name(event_id).name
