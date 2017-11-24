@@ -34,6 +34,7 @@ for representation, event_id, use_full, use_glove in tqdm(combinaciones):
 methods = (agglomerative,)
 affinities = ('cosine', 'euclidean')
 linkages = ('complete', 'average')
+overwrite = False
 
 n_clusterss = (5, 10, 20)
 

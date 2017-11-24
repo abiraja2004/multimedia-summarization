@@ -64,17 +64,16 @@ def agglomerative(eventgroup_id,
 
     input_vectors, doc_ids, rep_info = joblib.load(repr_fname)
 
-    # rep = '_'.join(f'{k}-{v}' for k, v in rep_info.items())
-    # ot = '_'.join(f'{k}-{v}' for k, v in other_params.items())
-    fname = f'data/clusters/{eventgroup_id}_clustering_agglomerative_{n_clusters}_{rep_info["name"]}.pkl'
+    linkage = other_params['linkage']
+    affinity = other_params['affinity']
+
+    fname = f'data/clusters/{eventgroup_id}_clustering_agglomerative_{n_clusters}_{rep_info["name"]}-{linkage}-{affinity}.pkl'
     path = Path(fname)
 
     if path.exists() and not overwrite:
         logging.info(f"file {path.as_posix()} exists")
         return joblib.load(path)
 
-    linkage = other_params['linkage']
-    affinity = other_params['affinity']
 
     ac = AgglomerativeClustering(n_clusters=n_clusters, affinity=affinity, linkage=linkage)
     if hasattr(input_vectors, 'todense'):
