@@ -3,6 +3,8 @@
 
 from collections import OrderedDict
 
+from pathlib import PosixPath
+
 import numpy as np
 from tqdm import tqdm, trange
 
