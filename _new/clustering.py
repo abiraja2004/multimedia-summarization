@@ -13,6 +13,8 @@ def save_cluster(eventgroup_id, info, model, doc_ids, fname):
                              json=info)
         db.session.add(cluster)
 
+    info['cluster_id'] = cluster.id
+
     with db.session.begin():
         for doc_id, label in tqdm(list(zip(doc_ids, model.labels_)), desc="saving cluster"):
             cluster_doc = db.DocumentCluster(document_id=doc_id,
@@ -20,8 +22,8 @@ def save_cluster(eventgroup_id, info, model, doc_ids, fname):
                                              label=label)
             db.session.add(cluster_doc)
 
-    joblib.dump((model, info, cluster), fname)
-    return model, info, cluster
+    joblib.dump((model, info), fname)
+    return model, info
 
 
 def kmeans(eventgroup_id,
@@ -32,7 +34,6 @@ def kmeans(eventgroup_id,
 
     input_vectors, doc_ids, rep_info = joblib.load(repr_fname)
 
-    #rep = '_'.join(f'{k}-{v}' for k, v in rep_info.items())
     fname = f'data/clusters/{eventgroup_id}_clustering_kmeans_{n_clusters}_{rep_info["name"]}.pkl'
     path = Path(fname)
 
@@ -45,6 +46,7 @@ def kmeans(eventgroup_id,
 
     info = {
         'clustering': 'K-Means',
+        'fname': repr_fname,
         'repr': rep_info['name'],
         'event': eventgroup_id,
         'n_clusters': n_clusters,
@@ -74,7 +76,6 @@ def agglomerative(eventgroup_id,
         logging.info(f"file {path.as_posix()} exists")
         return joblib.load(path)
 
-
     ac = AgglomerativeClustering(n_clusters=n_clusters, affinity=affinity, linkage=linkage)
     if hasattr(input_vectors, 'todense'):
         ac.fit(input_vectors.todense())
@@ -88,6 +89,7 @@ def agglomerative(eventgroup_id,
     info = {
         'clustering': f'Agglomerative-{linkage}-{affinity}',
         'repr': rep_info['name'],
+        'fname': repr_fname,
         'event': eventgroup_id,
         'n_clusters': n_clusters,
         'label_dist': dict(Counter(ac.labels_)),

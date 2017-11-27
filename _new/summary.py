@@ -1,5 +1,6 @@
 import json
 import logging
+import numpy as np
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -7,6 +8,11 @@ from tqdm import tqdm
 
 from models import Document, DocumentCluster, Tweet
 from ranking import rank_clusters
+
+from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.neighbors import NearestNeighbors
+from sklearn.externals import joblib
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
@@ -69,4 +75,50 @@ def gen_summary(event_name, cluster, session, sim_threshold=0.5):
                                                              json=json.dumps(params),
                                                              clusters=j_cluster,
                                                              labels=sort_labels)
+        f.write(t)
+
+
+def gen_summary2(event_name, cluster_fname, repr_fname, session):
+    results_dir = Path('results', event_name)
+    if not results_dir.exists():
+        results_dir.mkdir()
+
+    tweets_per_cluster = 10
+    env = Environment(loader=FileSystemLoader('results'), trim_blocks=True)
+
+    input_vectors, doc_ids, repr_info = joblib.load(repr_fname)
+    model, cluster_info = joblib.load(cluster_fname)
+    doc_ids = np.array(doc_ids)
+
+    rep = cluster_info['repr']
+    n_clusters = cluster_info['n_clusters']
+    cluster_algo = cluster_info['clustering'].lower()
+    cluster_id = cluster_info['cluster_id']
+
+    fname = f"{cluster_id}_{cluster_algo}_{n_clusters}_{rep}.html"
+
+    j_cluster = []
+    sorted_labels = rank_clusters(cluster_id, session)
+
+    with (results_dir / fname).open('w') as f:
+        if isinstance(model, AgglomerativeClustering):
+            centroids = []
+            for label in range(min(model.labels_), max(model.labels_) + 1):
+                centroids.append(input_vectors[model.labels_ == label].mean(0))
+        else:
+            centroids = model.cluster_centers_
+
+        knn = NearestNeighbors(n_neighbors=tweets_per_cluster, n_jobs=-1)
+        knn.fit(input_vectors)
+        _, doc_indices = knn.kneighbors(centroids)
+        sorted_docs_indices = doc_indices[sorted_labels]
+
+        for doc_indices in sorted_docs_indices:
+            documents = session.query(Document.tweet_id).filter(Document.id.in_(doc_ids[doc_indices])).all()
+            j_cluster.append(documents)
+
+        t = env.get_template('results_template.html').render(params=cluster_info,
+                                                             json=json.dumps(cluster_info),
+                                                             clusters=j_cluster,
+                                                             labels=sorted_labels)
         f.write(t)

@@ -12,10 +12,10 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s', level=logging.INFO)
 
-glove = (False, True)
+glove = (True, )
 events = (7, 8, 9)
 overwrite = False
-full = (False, True)
+full = (True, )
 reps = (average_we, discourse, tfidf)
 
 combinaciones = list(product(reps, events, full, glove))
@@ -31,12 +31,12 @@ for representation, event_id, use_full, use_glove in tqdm(combinaciones):
                    use_glove=use_glove,
                    overwrite=overwrite)
 
-methods = (agglomerative,)
-affinities = ('cosine', 'euclidean')
-linkages = ('complete', 'average')
+methods = (agglomerative, kmeans)
+affinities = ('cosine', )  # 'euclidean')
+linkages = ('complete', )  # 'average')
 overwrite = False
 
-n_clusterss = (5, 10, 20)
+n_clusterss = (20, )
 
 comb = list(product(methods, affinities, linkages)) + [(kmeans, None, None)]
 comb = list(product(comb, n_clusterss))

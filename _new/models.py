@@ -123,6 +123,7 @@ class Cluster(Base):
     id = Column(Integer, primary_key=True)
     eventgroup_id = Column(Integer)
     json = Column(Text)
+    added = Column(DateTime, default=datetime.now())
 
     def __repr__(self):
         return f'<Cluster [id={self.id}, event={self.eventgroup_id}]>'

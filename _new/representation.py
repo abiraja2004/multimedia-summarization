@@ -92,9 +92,9 @@ def precheck(name, eventgroup_id, use_glove, use_full, overwrite):
         vname = 'glove'
         model = glove
 
-    fname = f'data/representation_{name}_{eventgroup_id}_{vname}.pkl'
+    fname = f'data/representations/representation_{name}_{eventgroup_id}_{vname}.pkl'
     if use_full:
-        fname = f'data/representation_{name}_{eventgroup_id}_{vname}_full.pkl'
+        fname = f'data/representations/representation_{name}_{eventgroup_id}_{vname}_full.pkl'
 
     path = Path(fname)
     if path.exists() and not overwrite:
@@ -142,7 +142,11 @@ def average_we(eventgroup_id, use_full, use_glove, overwrite):
             doc_ids.append(doc_id)
 
     vectors = np.array(vectors, dtype=np.float32)
-    rep_params = {'name': vname}
+    if use_full:
+        rep_params = {'name': f'{vname}_full'}
+    else:
+        rep_params = {'name': vname}
+
     joblib.dump((vectors, doc_ids, rep_params), fname)
 
 
@@ -191,15 +195,19 @@ def discourse(eventgroup_id, use_full, use_glove, overwrite, alpha=0.001):
     for i in trange(vectors.shape[0], desc="moving vectors"):
         vectors[i] = vectors[i] - (u.T.dot(u)).dot(vectors[i])
 
-    params = {'a': alpha, 'name': f'discourse_{alpha}_{vname}'}
+    if use_full:
+        params = {'a': alpha, 'name': f'discourse_{alpha}_{vname}_full'}
+    else:
+        params = {'a': alpha, 'name': f'discourse_{alpha}_{vname}'}
+
     joblib.dump((vectors, doc_ids, params), fname)
     return vectors, doc_ids, params
 
 
 def tfidf(eventgroup_id, use_full, use_glove, overwrite):
-    fname = f'data/representation_tf-idf_{eventgroup_id}.pkl'
+    fname = f'data/representations/representation_tf-idf_{eventgroup_id}.pkl'
     if use_full:
-        fname = f'data/representation_tf-idf_{eventgroup_id}_full.pkl'
+        fname = f'data/representations/representation_tf-idf_{eventgroup_id}_full.pkl'
 
     path = Path(fname)
     if path.exists() and not overwrite:
