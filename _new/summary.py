@@ -1,7 +1,7 @@
 import json
 import logging
 import numpy as np
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 from jinja2 import Environment, FileSystemLoader
 from tqdm import tqdm
