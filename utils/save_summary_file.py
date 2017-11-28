@@ -12,9 +12,9 @@ from db.models_new import Tweet
 Session = sessionmaker(engine, autocommit=True)
 session = Session()
 
-event_name = 'libya_hotel'
+event_name = 'hurricane_irma2'
 path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'system')
-list_files = [file for file in Path(path_summaries, 'ids').iterdir() if file.is_file() and file.name != 'mgraph.tsv']
+list_files = [file for file in Path(path_summaries, 'ids').iterdir() if file.is_file()]
 
 for file in list_files:
     with file.open('r') as f:

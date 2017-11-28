@@ -42,19 +42,19 @@ def calculate_most_popular(text, n_populars, steam=False):
     return term[:n_populars]
 
 
-def calculate_fdist(text, steam=False):
+def calculate_fdist(text, stem=False):
     """
     Calculate the frequency distribution of a text
     :param text: String
-    :param steam: bool, perform steaming in the text
+    :param stem: bool, perform steaming in the text
     :return: Frequency distribution
     """
-    list_of_words = remove_and_steam(text, steam)
+    list_of_words = remove_and_stemming(text, stem)
     fdist_all = FreqDist(list_of_words)
     return fdist_all
 
 
-def remove_and_steam(text, steam=False):
+def remove_and_stemming(text, steam=False):
     """
     Remove stop words and steam text
     :param text: String to be processed
@@ -131,8 +131,8 @@ def compute_jensen_shannon(event, reference_name, summary_name):
 
 
 def dist_jaccard(str1, str2):
-    str1 = set(remove_and_steam(str1, True))
-    str2 = set(remove_and_steam(str2, True))
+    str1 = set(remove_and_stemming(str1, True))
+    str2 = set(remove_and_stemming(str2, True))
     return float(len(str1 & str2)) / len(str1 | str2)
 
 
@@ -149,3 +149,25 @@ def compute_jaccard(event, reference_name, summary_name):
         reference_text = reference.read()
         summary_text = summary.read()
     return dist_jaccard(summary_text, reference_text), dist_jaccard(reference_text, summary_text)
+
+
+def evaluate_event(event_name):
+    print('-------------' + event_name + '--------------')
+
+    compute_rouge(event_name)
+    event_path = Path(LOCAL_DATA_DIR_2, 'data', event_name, 'summaries')
+    references_path = Path(event_path, 'reference')
+    summaries_path = Path(event_path, 'system')
+    references = [x for x in references_path.iterdir() if x.is_file()]
+    summaries = [x for x in summaries_path.iterdir() if x.is_file()]
+
+    for reference in references:
+        for summary in summaries:
+            print(f'Jensen-Shannon: {compute_jensen_shannon(event_name, reference.name, summary.name)}')
+            print(f'Jaccard Distance: {compute_jaccard(event_name, reference.name, summary.name)}')
+
+
+if __name__ == '__main__':
+    evaluate_event('libya_hotel')
+    # evaluate_event('oscar_pistorius')
+    # evaluate_event('nepal_earthquake')

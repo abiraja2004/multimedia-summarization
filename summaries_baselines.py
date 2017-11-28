@@ -3,15 +3,15 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
 number_summaries = 30
-event_name = 'nepal_earthquake'
-path_summaries = Path('data', event_name, 'summaries', 'system')
+event_name = 'hurricane_irma2'
+path_summaries = Path('data', event_name, 'summaries', 'system', 'ids')
 summaries_files = [file for file in path_summaries.iterdir() if file.is_file()]
 
 
 def parse_mgraph(path_file):
     with path_file.open('r') as file:
         ids = []
-        if path_file.suffix == '.tsv':
+        if path_file.suffix == '.txt':
             lines = file.readlines()[:number_summaries]
             for line in lines:
                 id = line.split('\t')[0]

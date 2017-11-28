@@ -6,11 +6,10 @@ from dit.divergences import jensen_shannon_divergence
 from nltk import TweetTokenizer
 from sqlalchemy.orm import sessionmaker
 
-import db.datasets
 from db.engines import engine_lmartine as engine
 from db.events import get_tweets
-from evaluation.automatic_evaluation import calculate_vocab_distribution, calculate_most_popular, compute_rouge, \
-    compute_jensen_shannon, compute_jaccard
+from db.models_new import EventGroup
+from evaluation.automatic_evaluation import calculate_vocab_distribution, calculate_most_popular
 from settings import LOCAL_DATA_DIR_2
 
 '''
@@ -124,35 +123,21 @@ def evaluate_distibution(event_name, words, session, ids):
         print('Most Common words in timeline: {}'.format(word_set_timeline))
         print('Jensen-Shannon: {}'.format(jensen_shannon_divergence([dist_timeline, event_dist])))
         jaccard = len(words_set_event.intersection(word_set_timeline)) / len(words_set_event.union(word_set_timeline))
+
         print('Jaccard Index: {}'.format(jaccard))
 
-
-def evaluate_event(event_name):
-    print('-------------' + event_name + '--------------')
-
-    compute_rouge(event_name)
-    event_path = Path(LOCAL_DATA_DIR_2, 'data', event_name, 'summaries')
-    references_path = Path(event_path, 'reference')
-    summaries_path = Path(event_path, 'system')
-    references = [x for x in references_path.iterdir() if x.is_file()]
-    summaries = [x for x in summaries_path.iterdir() if x.is_file()]
-
-    for reference in references:
-        for summary in summaries:
-            print('Jensen-Shannon Divergence: ')
-            print(compute_jensen_shannon(event_name, reference.name, summary.name))
-            print('Jaccard Distance')
-            print(compute_jaccard(event_name, reference.name, summary.name))
 
 if __name__ == '__main__':
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
     n_words = [10, 15, 20, 25, 35]
-    event_ids = db.datasets.libya_hotel
+    name = 'libya_hotel'
+    event = session.query(EventGroup).filter(EventGroup.name == name).first()
+    event_ids = list(map(int, event.event_ids.split(',')))
     for n_word in n_words:
         print('n_words: {}'.format(n_word))
         # evaluate_coverage_tweets('oscar_pistorius', n_word)
-        evaluate_coverage_tweets('libya_hotel', n_word, session, event_ids)
+        # evaluate_coverage_tweets('libya_hotel', n_word, session, event_ids)
         # evaluate_coverage_tweets('nepal_earthquake', n_word)
 
     evaluate_distibution('libya_hotel', 15, session, event_ids)

@@ -17,13 +17,13 @@ frequencyFeatures = Y
 ---- For cosine and topic word features if "Y", must also specify word counts from a large corpus -----
 ---- See README for details about file format -----
 
-cosineOverlap = N
+cosineOverlap = Y
 
-topicWordFeatures = N
+topicWordFeatures = Y
 
 backgroundCorpusFreqCounts = /home/luis/PycharmProjects/multimedia-summarization/evaluation/data_simetrix/bgFreqCounts.unstemmed.txt
 
 backgroundIdfUnstemmed = /home/luis/Universidad/simetrix/data/bgIdfValues.unstemmed.txt
 
-backgroundIdfStemmed = /home/luis/Universidad/simetrix/data/bgIdfValues.stemmed.txt
+backgroundIdfStemmed = /home/luis/PycharmProjects/multimedia-summarization/evaluation/data_simetrix/bgIdfFreq.stemmed.txt
 

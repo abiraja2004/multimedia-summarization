@@ -28,7 +28,8 @@ def exploration(event_name, ids, session):
 if __name__ == '__main__':
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
-    event_name = 'libya_hotel'
-    event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
-    event_ids = list(map(int, event.event_ids.split(',')))
-    exploration(event_name, event_ids, session)
+    events_names = ['libya_hotel', 'oscar_pistorius', 'nepal_earthquake', 'hurricane_irma2']
+    for event_name in events_names:
+        event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
+        event_ids = list(map(int, event.event_ids.split(',')))
+        exploration(event_name, event_ids, session)
