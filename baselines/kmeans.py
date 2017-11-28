@@ -10,11 +10,12 @@ import settings
 from db.engines import engine_lmartine as engine
 from db.events import get_tweets
 from db.models_new import EventGroup
-from evaluation.automatic_evaluation import remove_and_steam
+from evaluation.automatic_evaluation import remove_and_stemming
 
 
 def clean_tweet(tweet):
-    return ' '.join(remove_and_steam(re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))), False))
+    return ' '.join(
+        remove_and_stemming(re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))), False))
 
 
 def filter_tweet(text):
@@ -48,10 +49,11 @@ def clustering(n_clusters, event_name, event_ids, session):
     with Path(path_top_clusters, f'top_terms_{n_clusters}.txt').open('w') as terms_file:
         for i in range(n_clusters):
             print("Cluster %d:" % i),
-            terms_file.write(f'Cluster {i}')
+            terms_file.write(f'Cluster {i} \n')
             for ind in order_centroids[i, :10]:
                 print(' %s' % terms[ind])
                 terms_file.write(terms[ind] + '\n')
+            terms_file.write('\n')
 
     closest, _ = pairwise_distances_argmin_min(km.cluster_centers_, tfidf, metric='cosine')
     tokens_closest = []
@@ -73,12 +75,13 @@ if __name__ == '__main__':
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
 
-    events_names = ['oscar_pistorius', 'nepal_earthquake', 'hurricane_irma2']
+    events_names = ['libya_hotel']
     for event_name in events_names:
+        print(event_name)
         event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
         ids = list(map(int, event.event_ids.split(',')))
 
-        n_cluster = [15, 20, 25, 30]
+        n_cluster = [25]
         for n in n_cluster:
             tweets = clustering(n, event_name, ids, session)
             save_ids(tweets, event_name, n)

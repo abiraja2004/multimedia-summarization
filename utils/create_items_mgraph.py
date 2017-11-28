@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from db.engines import connect_to_server
+from db.engines import engine_lmartine as engine
 from db.events import get_tweets
 from db.models_new import User, Tweet, EventGroup
 from utils.download_tweets import chunks
@@ -50,12 +50,10 @@ def create_item_mgraph(tweet, session):
 if __name__ == '__main__':
     name = 'hurricane_irma2'
 
-    connect = lambda: connect_to_server(username="lmartinez", host="172.17.69.88", ssh_pkey="/home/luis/.ssh/id_rsa")
-    with connect() as engine:
-        Session = sessionmaker(engine, autocommit=True)
-        session = Session()
+    Session = sessionmaker(engine, autocommit=True)
+    session = Session()
 
-        event = session.query(EventGroup).filter(EventGroup.name == name).first()
-        ids = list(map(int, event.event_ids.split(',')))
+    event = session.query(EventGroup).filter(EventGroup.name == name).first()
+    ids = list(map(int, event.event_ids.split(',')))
 
-        insert_items(ids, name, session)
+    insert_items(ids, name, session)
