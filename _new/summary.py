@@ -2,6 +2,8 @@ import json
 import logging
 import numpy as np
 from pathlib import Path, PosixPath
+from scipy.sparse.csr import csr_matrix
+from operator import itemgetter
 
 from jinja2 import Environment, FileSystemLoader
 from tqdm import tqdm
@@ -83,7 +85,7 @@ def gen_summary2(event_name, cluster_fname, repr_fname, session):
     if not results_dir.exists():
         results_dir.mkdir()
 
-    tweets_per_cluster = 10
+    tweets_per_cluster = 3
     env = Environment(loader=FileSystemLoader('results'), trim_blocks=True)
 
     input_vectors, doc_ids, repr_info = joblib.load(repr_fname)
@@ -102,9 +104,15 @@ def gen_summary2(event_name, cluster_fname, repr_fname, session):
 
     with (results_dir / fname).open('w') as f:
         if isinstance(model, AgglomerativeClustering):
-            centroids = []
-            for label in range(min(model.labels_), max(model.labels_) + 1):
-                centroids.append(input_vectors[model.labels_ == label].mean(0))
+            if isinstance(input_vectors, csr_matrix):
+                input_vectors = input_vectors.todense()
+                centroids = []
+                for label in range(min(model.labels_), max(model.labels_) + 1):
+                    centroids.append(np.array(input_vectors[model.labels_ == label].mean(0))[0].T)
+            else:
+                centroids = []
+                for label in range(min(model.labels_), max(model.labels_) + 1):
+                    centroids.append(input_vectors[model.labels_ == label].mean(0))
         else:
             centroids = model.cluster_centers_
 
@@ -115,10 +123,14 @@ def gen_summary2(event_name, cluster_fname, repr_fname, session):
 
         for doc_indices in sorted_docs_indices:
             documents = session.query(Document.tweet_id).filter(Document.id.in_(doc_ids[doc_indices])).all()
-            j_cluster.append(documents)
+            j_cluster.append(list(map(itemgetter(0), documents)))
+
+        cluster_info['fname'] = cluster_info['fname'].as_posix()
+        cluster_info['label_dist'] = {int(k): int(v) for k, v in cluster_info['label_dist'].items()}
 
         t = env.get_template('results_template.html').render(params=cluster_info,
                                                              json=json.dumps(cluster_info),
                                                              clusters=j_cluster,
+                                                             event_name=event_name,
                                                              labels=sorted_labels)
         f.write(t)
