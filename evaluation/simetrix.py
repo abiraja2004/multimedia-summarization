@@ -36,7 +36,7 @@ def create_mappings(event_name):
                  if file.is_file()]
     source = Path('data_simetrix', event_name, f'input_{event_name}.txt')
     # source = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'reference')
-    with Path('data_simetrix', 'mappings_timelines.txt').open('a') as mappings:
+    with Path('data_simetrix', 'mappings.txt').open('a') as mappings:
         for summary in summaries:
             line = f'{event_name} {summary.name[:-4]} {source.absolute()} {summary.absolute()} \n'
             mappings.write(line)
@@ -95,8 +95,8 @@ if __name__ == '__main__':
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
 
-    events_names = ['hurricane_irma2', 'oscar_pistorius', 'nepal_earthquake', 'libya_hotel']
-    #events_names = ['libya_hotel']
+    # events_names = ['hurricane_irma2', 'oscar_pistorius', 'nepal_earthquake', 'libya_hotel']
+    events_names = ['hurricane_irma2']
     if not Path('data_simetrix', 'bgFreqCounts.unstemmed.txt').exists():
         tweets_text = get_tweets_text(session)
         calculate_background_corpus(session, tweets_text)
@@ -115,4 +115,4 @@ if __name__ == '__main__':
         create_mappings(name)
 
     subprocess.call(
-        ['java', '-jar', 'simetrix.jar', 'data_simetrix/mappings_timelines.txt', 'data_simetrix/config.example'])
+        ['java', '-jar', 'simetrix.jar', 'data_simetrix/mappings.txt', 'data_simetrix/config.example'])

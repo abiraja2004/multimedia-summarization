@@ -4,13 +4,8 @@ import numpy as np
 from nltk import TweetTokenizer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sqlalchemy.orm import sessionmaker
 
 import settings
-from baselines.kmeans import filter_tweet
-from db.engines import engine_lmartine as engine
-from db.events import get_tweets
-from db.models_new import EventGroup
 from evaluation import automatic_evaluation
 
 """
@@ -27,16 +22,6 @@ stop_words.update(
      '.:', ':.', '".', '))', '((', '’'])
 
 vectorizer = TfidfVectorizer(stop_words=stop_words, dtype='float32')
-
-
-def get_text_tweets(event_name):
-    Session = sessionmaker(engine, autocommit=True)
-    session = Session()
-    event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
-    ids = list(map(int, event.event_ids.split(',')))
-    tweets = get_tweets(event_name, ids, session)
-    tweets_text = [tweet.text for tweet in tweets if filter_tweet(tweet.text)]
-    return tweets_text
 
 
 def calculate_cosine_similarity(lines):
@@ -67,10 +52,12 @@ def calculate_jaccard(tokens, threshold):
 def dist_jaccard_list(list1, list2):
     set1 = set(list1)
     set2 = set(list2)
+    if len(set1 | set2):
+        set1
     return float(len(set1 & set2)) / len(set1 | set2)
 
 
-event_name = 'libya_hotel'
+event_name = 'hurricane_irma2'
 path_summaries = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'summaries', 'system')
 summaries_file = [file for file in path_summaries.iterdir() if file.is_file()]
 threshold = 0.6
@@ -79,9 +66,13 @@ for summary_file in summaries_file:
     tokens_summaries = []
     with summary_file.open('r') as summary:
         lines = summary.readlines()
-        lines = [line for line in lines if line != '\n' or line != '']
+        lines = [line.replace('\n', '') for line in lines]
         for line in lines:
+            if line == '':
+                continue
             tokens = automatic_evaluation.remove_and_stemming(line, True)
+            if len(tokens) <= 1:
+                continue
             tokens_summaries.append(tokens)
 
         print(f'{summary_file.name}')

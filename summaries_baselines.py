@@ -2,8 +2,8 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-number_summaries = 30
-event_name = 'hurricane_irma2'
+number_summaries = 25
+event_name = 'nepal_earthquake'
 path_summaries = Path('data', event_name, 'summaries', 'system', 'ids')
 summaries_files = [file for file in path_summaries.iterdir() if file.is_file()]
 
