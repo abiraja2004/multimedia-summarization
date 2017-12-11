@@ -17,8 +17,10 @@ session = Session()
 def get_eventgroup_id(event_name: str) -> EventGroup:
     return session.query(EventGroup).filter(EventGroup.name == event_name).first()
 
+
 def get_eventgroup_name(event_id: int):
-    return session.query(EventGroup).filter(EventGroup.id== event_id).first()
+    return session.query(EventGroup).filter(EventGroup.id == event_id).first()
+
 
 def get_documents(eventgroup_id: int, full=True) -> Dict[int, List[Union[Tweet, Document]]]:
     if full:
@@ -43,3 +45,14 @@ def get_documents(eventgroup_id: int, full=True) -> Dict[int, List[Union[Tweet, 
             docs[i].append(t)
 
     return docs
+
+
+def get_tweets(eventgroup_id):
+    eventgroup = get_eventgroup_name(eventgroup_id)
+    event_ids = list(map(int, eventgroup.event_ids.split(',')))
+
+    q = session.query(Tweet)\
+        .join(EventTweet, EventTweet.tweet_id == Tweet.tweet_id)\
+        .filter(EventTweet.event_id.in_(event_ids)).all()
+
+    return q
