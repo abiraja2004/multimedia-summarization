@@ -1,3 +1,2 @@
 from pathlib import Path
-
-LOCAL_DATA_DIR_2 = Path('/home', 'luis', 'PycharmProjects', 'multimedia-summarization')
+LOCAL_DATA_DIR_2 = Path('/home', 'luism', 'PycharmProjects', 'multimedia-summarization')

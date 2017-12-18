@@ -33,11 +33,7 @@ def filter_tweet(text):
     return True
 
 
-def clustering(n_clusters, tweets):
-    tweets = [tweet for tweet in tweets if filter_tweet(tweet.text)]
-    clean_tweets = [clean_tweet(tweet) for tweet in tweets]
-    vectorizer = TfidfVectorizer()
-    tfidf = vectorizer.fit_transform(clean_tweets)
+def clustering(n_clusters, tweets_clean):
     km = KMeans(n_clusters=n_clusters)
     labels = km.fit_predict(tfidf)
 
@@ -47,7 +43,7 @@ def clustering(n_clusters, tweets):
 
     top_terms = top_terms_clusters(n_clusters, order_centroids, terms)
 
-    tweets_labels = [(label, tweet.text) for tweet, label in zip(tweets, labels)]
+    tweets_labels = [(label, tweet.text) for tweet, label in zip(tweets_clean, labels)]
     return tweets_labels, top_terms
 
 
@@ -66,8 +62,8 @@ def top_terms_clusters(n_clusters, order_centroids, terms):
     return top_terms
 
 
-def create_json_topic(n_clusters, tweets):
-    tweets_labels, top_terms = clustering(n_clusters, tweets)
+def create_json_topic(n_clusters, tweets_event):
+    tweets_labels, top_terms = clustering(n_clusters, tweets_event)
     tweet_dict = defaultdict(list)
 
     for label, text in tweets_labels:
@@ -81,7 +77,7 @@ def create_json_topic(n_clusters, tweets):
             file.write('\n')
 
 
-def save_summary(event, n_cluster, tweets):
+def save_summary(event, n_cluster, tweets_clustering):
     path_summary = Path(settings.LOCAL_DATA_DIR_2, 'data', event, 'summaries', 'system', 'ids',
                         f'phrase_reinforcement_{n_cluster}.txt')
     path_json = Path(settings.LOCAL_DATA_DIR_2, 'data', event, 'phrase_reinforcement', str(n_cluster), 'rawData.json')
@@ -92,9 +88,9 @@ def save_summary(event, n_cluster, tweets):
                 summary = v['autoSummary']
                 if summary[len(summary) - 1] == '\n':
                     summary = summary[:len(summary)]
-                tweets_text = [tweet.text for tweet in tweets]
+                tweets_text = [tweet.text for tweet in tweets_clustering]
                 try:
-                    tweet = tweets[tweets_text.index(summary)]
+                    tweet = tweets_clustering[tweets_text.index(summary)]
                 except:
                     tweet = session.query(Tweet).filter(Tweet.text.like(f'%{summary}%')).first()
 
@@ -125,9 +121,19 @@ if __name__ == '__main__':
     events_names = ['oscar_pistorius', 'nepal_earthquake', 'hurricane_irma2']
     for event_name in events_names:
         print(event_name)
+        path_pr = Path(settings.LOCAL_DATA_DIR_2, 'data', event_name, 'phrase_reinforcement')
+        if not path_pr.exists():
+            path_pr.mkdir()
+
         event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
         event_ids = list(map(int, event.event_ids.split(',')))
+
         tweets = events.get_tweets(event_name, event_ids, session)
+        tweets = [tweet for tweet in tweets if filter_tweet(tweet.text)]
+        clean_tweets = [clean_tweet(tweet) for tweet in tweets]
+        vectorizer = TfidfVectorizer()
+        tfidf = vectorizer.fit_transform(clean_tweets)
+
         if event_name == 'libya_hotel':
             n_cluster = [10, 15, 20, 25]
         else:

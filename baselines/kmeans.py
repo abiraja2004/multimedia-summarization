@@ -15,7 +15,7 @@ from evaluation.automatic_evaluation import remove_and_stemming
 
 def clean_tweet(tweet):
     return ' '.join(
-        remove_and_stemming(re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))), False))
+        remove_and_stemming(re.sub(r"@\w+", '', re.sub(r"http\S+", '', tweet.text.replace('#', ''))), True))
 
 
 def filter_tweet(text):
@@ -28,12 +28,7 @@ def filter_tweet(text):
     return True
 
 
-def clustering(n_clusters, event_name, event_ids, session):
-    tweets = get_tweets(event_name, event_ids, session)
-    tweets = [tweet for tweet in tweets if filter_tweet(tweet.text)]
-    clean_tweets = [(tweet.text, clean_tweet(tweet)) for tweet in tweets]
-    vectorizer = TfidfVectorizer()
-    tfidf = vectorizer.fit_transform([clean[1] for clean in clean_tweets])
+def clustering(n_clusters, tfidf):
     km = KMeans(n_clusters=n_clusters)
     km.fit(tfidf)
 
@@ -51,7 +46,6 @@ def clustering(n_clusters, event_name, event_ids, session):
             print("Cluster %d:" % i),
             terms_file.write(f'Cluster {i} \n')
             for ind in order_centroids[i, :10]:
-                print(' %s' % terms[ind])
                 terms_file.write(terms[ind] + '\n')
             terms_file.write('\n')
 
@@ -62,6 +56,15 @@ def clustering(n_clusters, event_name, event_ids, session):
         tokens_closest.append(vectorizer.inverse_transform(tfidf[close_index]))
         tweet_closest.append(tweets[close_index])
     return tweet_closest
+
+
+def calculate_tf_idf(event_ids, event_name, session):
+    tweets = get_tweets(event_name, event_ids, session)
+    tweets = [tweet for tweet in tweets if filter_tweet(tweet.text)]
+    clean_tweets = [(tweet.text, clean_tweet(tweet)) for tweet in tweets]
+    vectorizer = TfidfVectorizer()
+    tfidf = vectorizer.fit_transform([clean[1] for clean in clean_tweets])
+    return tfidf, tweets, vectorizer
 
 
 def save_ids(tweets, event_name, n_clusters):
@@ -75,13 +78,17 @@ if __name__ == '__main__':
     Session = sessionmaker(engine, autocommit=True)
     session = Session()
 
-    events_names = ['libya_hotel']
+    events_names = ['libya_hotel', 'nepal_earthquake', 'oscar_pistorius', 'hurricane_irma2']
     for event_name in events_names:
         print(event_name)
         event = session.query(EventGroup).filter(EventGroup.name == event_name).first()
         ids = list(map(int, event.event_ids.split(',')))
-
-        n_cluster = [25]
+        tfidf, tweets, vectorizer = calculate_tf_idf(ids, event_name, session)
+        if event_name == 'libya_hotel':
+            n_cluster = [10, 15, 20, 25]
+        else:
+            n_cluster = [15, 20, 25, 30]
         for n in n_cluster:
-            tweets = clustering(n, event_name, ids, session)
-            save_ids(tweets, event_name, n)
+
+            tweets_ids_cluster = clustering(n, tfidf)
+            save_ids(tweets_ids_cluster, event_name, n)
