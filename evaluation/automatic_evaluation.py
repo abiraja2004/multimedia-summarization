@@ -83,7 +83,7 @@ def calculate_vocab_distribution(text, steam=False):
             pairs, list of tuples (word, probability)
     """
     fdist = calculate_fdist(text, steam)
-    fdist = {k: v for k, v in fdist.items() if v > 1}
+    fdist = {k: v for k, v in fdist.items()}
     len_vocab = sum(fdist.values())
     pairs = [(key, value / len_vocab) for key, value in fdist.items()]
     pairs.sort(key=lambda x: int(x[1]), reverse=True)
