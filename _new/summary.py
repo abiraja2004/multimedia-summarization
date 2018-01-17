@@ -85,7 +85,7 @@ def gen_summary2(event_name, cluster_fname, repr_fname, session):
     if not results_dir.exists():
         results_dir.mkdir()
 
-    tweets_per_cluster = 3
+    tweets_per_cluster = 1
     env = Environment(loader=FileSystemLoader('results'), trim_blocks=True)
 
     input_vectors, doc_ids, repr_info = joblib.load(repr_fname)

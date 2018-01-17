@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s | %(name)s | %(levelname)s : %(message)s
 glove = (True, False)
 events = (2,)
 overwrite = False
-full = (True, False)
+full = (False, )
 reps = (average_we, discourse, tfidf)
 
 combinaciones = list(product(reps, glove, full, events))

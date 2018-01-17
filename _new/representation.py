@@ -177,7 +177,7 @@ def discourse(eventgroup_id, use_full, use_glove, overwrite, alpha=0.001):
         for token in tokenizer(' '.join([d.text for d in texts])):
             total_words += 1
 
-            if token in model:
+            if token in model and token in freqs:
                 wv = model[token]
                 pw = freqs[token]
 
